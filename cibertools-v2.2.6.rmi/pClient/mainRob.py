@@ -1,4 +1,3 @@
-
 import sys
 from croblink import *
 from math import *
@@ -90,26 +89,34 @@ class Map():
         root = tree.getroot()
         
         self.labMap = [[' '] * (CELLCOLS*2-1) for i in range(CELLROWS*2-1) ]
+        self.obstacleGrid = [[0] * (CELLCOLS*2-1) for i in range(CELLROWS*2-1) ]
+        x = 0
         i=1
         for child in root.iter('Row'):
-           line=child.attrib['Pattern']
-           row =int(child.attrib['Pos'])
-           if row % 2 == 0:  # this line defines vertical lines
-               for c in range(len(line)):
-                   if (c+1) % 3 == 0:
-                       if line[c] == '|':
-                           self.labMap[row][(c+1)/3*2-1]='|'
-                       else:
-                           None
-           else:  # this line defines horizontal lines
-               for c in range(len(line)):
-                   if c % 3 == 0:
-                       if line[c] == '-':
-                           self.labMap[row][c/3*2]='-'
-                       else:
-                           None
+            line=child.attrib['Pattern']
+            row =int(child.attrib['Pos'])
+            if row % 2 == 0:  # this line defines vertical lines
+                for c in range(len(line)):
+                    if (c+1) % 3 == 0:
+                        if line[c] == '|':
+                            self.labMap[row][int((c+1)/3*2-1)]='|'
+                            self.obstacleGrid[row][int(c/1.5)] = 1
+                        else:
+                            None
+            else:  # this line defines horizontal lines
+                for c in range(len(line)):
+                    if c % 3 == 0:
+                        if line[c] == '-':
+                            self.labMap[row][int(c/3*2)]='-'
+                            self.obstacleGrid[row][int(c/3*2)]=1
+                            if (line[c-1] == '-' or line[c-1] == '·') and int(c/3*2) < len(self.obstacleGrid[row])-1:
+                                self.obstacleGrid[row][int(c/3*2)+1]=1
+                            if (line[c-1] == '-' or line[c-1] == '·') and int(c/3*2) > 0: 
+                                self.obstacleGrid[row][int(c/3*2)-1]=1  
+                        else:
+                            None
                
-           i=i+1
+            i=i+1
 
 
 rob_name = "pClient1"
@@ -135,5 +142,9 @@ if __name__ == '__main__':
     if mapc != None:
         rob.setMap(mapc.labMap)
         rob.printMap()
+
+        # print(mapc.obstacleGrid)
+        for x in reversed(mapc.obstacleGrid):
+            print(x)
     
     rob.run()
