@@ -123,14 +123,23 @@ rob_name = "pClient1"
 host = "localhost"
 pos = 1
 mapc = None
+startCELL = (0,0)
+targetCELL = (0,0)
+challenge = 1
 
 for i in range(1, len(sys.argv),2):
     if (sys.argv[i] == "--host" or sys.argv[i] == "-h") and i != len(sys.argv) - 1:
         host = sys.argv[i + 1]
     elif (sys.argv[i] == "--pos" or sys.argv[i] == "-p") and i != len(sys.argv) - 1:
         pos = int(sys.argv[i + 1])
-    elif (sys.argv[i] == "--robname" or sys.argv[i] == "-p") and i != len(sys.argv) - 1:
+    elif (sys.argv[i] == "--robname" or sys.argv[i] == "-n") and i != len(sys.argv) - 1:
         rob_name = sys.argv[i + 1]
+    elif (sys.argv[i] == "--start" or sys.argv[i] == "-s") and i != len(sys.argv) - 1:
+        startCELL = [int(i) for i in sys.argv[i + 1].split(",")]
+    elif (sys.argv[i] == "--target" or sys.argv[i] == "-t") and i != len(sys.argv) - 1:
+        targetCELL = [int(i) for i in sys.argv[i + 1].split(",")]
+    elif (sys.argv[i] == "--challenge" or sys.argv[i] == "-c") and i != len(sys.argv) - 1:
+        challenge = sys.argv[i + 1]
     elif (sys.argv[i] == "--map" or sys.argv[i] == "-m") and i != len(sys.argv) - 1:
         mapc = Map(sys.argv[i + 1])
     else:
@@ -142,7 +151,9 @@ if __name__ == '__main__':
     if mapc != None:
         rob.setMap(mapc.labMap)
         rob.printMap()
-
+        mapc.obstacleGrid[startCELL[0]*2][startCELL[1]*2] = 5
+        mapc.obstacleGrid[targetCELL[0]*2][targetCELL[1]*2] = 2
+        
         # print(mapc.obstacleGrid)
         for x in reversed(mapc.obstacleGrid):
             print(x)
