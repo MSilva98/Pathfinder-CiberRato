@@ -1,7 +1,13 @@
+
+
 import sys
 from croblink import *
-from math import *
+import math
 import xml.etree.ElementTree as ET
+
+import numpy as np
+
+from astar import *
 
 CELLROWS=7
 CELLCOLS=14
@@ -29,7 +35,11 @@ class MyRob(CRobLinkAngs):
 
         while True:
             self.readSensors()
-
+            #print(self.measures.ground)
+            #print(self.measures.groundReady)
+            #print(self.measures.compass)
+            #print(self.measures.x)
+            #print(self.measures.y)
             if self.measures.endLed:
                 print(self.rob_name + " exiting")
                 quit()
@@ -45,8 +55,15 @@ class MyRob(CRobLinkAngs):
                 if self.measures.visitingLed==True:
                     state='wait'
                 if self.measures.ground==0:
-                    self.setVisitingLed(True);
-                self.wander()
+                    self.setVisitingLed(True)
+                    self.driveMotors(0.0,0.0)
+                    return
+                #self.wander()
+                #self.moveFrontOne()
+                #self.rotate(90)
+                #self.moveFrontOne()
+                self.followPath()
+                return
             elif state=='wait':
                 self.setReturningLed(True)
                 if self.measures.visitingLed==True:
@@ -59,8 +76,55 @@ class MyRob(CRobLinkAngs):
                     self.setVisitingLed(False)
                 if self.measures.returningLed==True:
                     self.setReturningLed(False)
-                self.wander()
+                #self.wander()
             
+
+    def followPath(self):
+        while len(path)> 1:
+            currentPos = path.pop(0)
+            dirToMove = (( path[0][0]) - currentPos[0], (path[0][1] - currentPos[1] ))
+            print(dirToMove)
+            if(dirToMove[0] > 0):
+                self.rotate(-90)
+            elif(dirToMove[0] < 0):
+                self.rotate(90)
+            if(dirToMove[1] > 0):
+                self.rotate(0)
+            elif(dirToMove[1] < 0):
+                self.rotate(180)
+            self.moveFrontOne()
+
+        return
+
+    def moveFrontOne(self):
+        posInit = [self.measures.x, self.measures.y]
+        direction = self.measures.compass
+        currentPos = [self.measures.x, self.measures.y]
+        distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
+        while distance < 2 :
+            if(self.measures.compass > direction + 1):
+                self.driveMotors(+0.1,0.09)
+            elif(self.measures.compass < direction -1):
+                self.driveMotors(0.09,+0.1)
+            else:
+                self.driveMotors(+0.1,+0.1)
+            self.readSensors()
+            currentPos = [self.measures.x, self.measures.y]
+            distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
+            #print(distance)
+        self.driveMotors(0.00,-0.00)
+    
+
+    def rotate(self, ang):
+        if(ang > 0):
+            while self.measures.compass < ang-1:
+                self.driveMotors(-0.01,+0.01)
+                self.readSensors()
+        elif(ang < 0):
+            while self.measures.compass > ang+1:
+                self.driveMotors(0.01,-0.01)
+                self.readSensors()
+        self.driveMotors(0.00,-0.00)
 
     def wander(self):
         center_id = 0
@@ -126,6 +190,7 @@ mapc = None
 startCELL = (0,0)
 targetCELL = (0,0)
 challenge = 1
+path = []
 
 for i in range(1, len(sys.argv),2):
     if (sys.argv[i] == "--host" or sys.argv[i] == "-h") and i != len(sys.argv) - 1:
@@ -154,8 +219,15 @@ if __name__ == '__main__':
         mapc.obstacleGrid[startCELL[0]*2][startCELL[1]*2] = 5
         mapc.obstacleGrid[targetCELL[0]*2][targetCELL[1]*2] = 2
         
-        # print(mapc.obstacleGrid)
-        for x in reversed(mapc.obstacleGrid):
+        maze = np.flip(mapc.obstacleGrid,0)
+
+        #print(mapc.obstacleGrid)
+        for x in maze:
             print(x)
-    
+        start = (startCELL[0]*2 , startCELL[1]*2) # (y,x)
+        end = (targetCELL[0]*2 , targetCELL[1]*2)  
+        print(targetCELL*2)
+        path = astar(maze, start, end)
+        print(path)
+
     rob.run()
