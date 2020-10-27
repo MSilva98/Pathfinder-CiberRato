@@ -32,7 +32,8 @@ class MyRob(CRobLinkAngs):
 
         state = 'stop'
         stopped_state = 'run'
-
+        self.readSensors()
+        self.startPosition = (self.measures.y, self.measures.x)
         while True:
             self.readSensors()
             #print(self.measures.ground)
@@ -62,7 +63,10 @@ class MyRob(CRobLinkAngs):
                 #self.moveFrontOne()
                 #self.rotate(90)
                 #self.moveFrontOne()
+
                 self.followPath()
+
+                #self.followPath2()
                 return
             elif state=='wait':
                 self.setReturningLed(True)
@@ -79,6 +83,42 @@ class MyRob(CRobLinkAngs):
                 #self.wander()
             
 
+    def moveToGPSPoint(self, point):
+        northVec = [0,1]
+        while self.measures.y > point[0] + 0.3 or self.measures.y < point[0] - 0.3  or self.measures.x > point[1] + 0.3 or self.measures.x < point[1] - 0.3:
+            print(self.measures.y)
+            print(self.measures.x)
+            print("MOVE TO POINT:" + str(point))
+            dirVec = [point[0] - self.measures.y, point[1] - self.measures.x]
+            #PODE NÂO RESULTAR POIS CALCULA O ANGULO SEMPRE POSITIVO E NUNCA NEGATIVO
+            unit_vector_1 = northVec / np.linalg.norm(northVec)
+            unit_vector_2 = dirVec / np.linalg.norm(dirVec)
+            dot_product = np.dot(unit_vector_1, unit_vector_2)
+            angle = np.arccos(dot_product)  
+            print(math.degrees(angle))
+            #if(point[0] < self.startPosition[0]):
+            #    angle = -angle
+            self.rotate(math.degrees(angle))
+            self.driveMotors(0.03,0.03)
+            self.readSensors()
+        
+
+
+    def cellToGPSPoint(self, cell):
+        return [self.startPosition[0] + cell[0] - startCELL[0]*2 , self.startPosition[1] + cell[1] - startCELL[1]*2]
+    
+    def moveToCell(self, cell):
+        print("MOVE TO CELL:" + str(cell))
+        self.moveToGPSPoint(self.cellToGPSPoint(cell))
+        
+    def followPath2(self):
+        print(path)
+        path.pop(0)
+        while len(path)> 1:
+            self.moveToCell(path.pop(0))
+            
+
+
     def followPath(self):
         while len(path)> 1:
             currentPos = path.pop(0)
@@ -94,7 +134,6 @@ class MyRob(CRobLinkAngs):
                 self.rotate(180)
             self.moveFrontOne()
 
-        return
 
     def moveFrontOne(self):
         posInit = [self.measures.x, self.measures.y]
