@@ -11,6 +11,7 @@ from astar import *
 
 CELLROWS=7
 CELLCOLS=14
+offset_rotation = 0
 
 class MyRob(CRobLinkAngs):
     def __init__(self, rob_name, rob_id, angles, host):
@@ -126,25 +127,29 @@ class MyRob(CRobLinkAngs):
             print(dirToMove)
             if(dirToMove[0] > 0):
                 self.rotate(-90)
+                self.moveFrontOne(-90)
             elif(dirToMove[0] < 0):
                 self.rotate(90)
+                self.moveFrontOne(90)
             if(dirToMove[1] > 0):
                 self.rotate(0)
+                self.moveFrontOne(0)
             elif(dirToMove[1] < 0):
                 self.rotate(180)
-            self.moveFrontOne()
+                self.moveFrontOne(180)
+            
 
 
-    def moveFrontOne(self):
+    def moveFrontOne(self, direction):
         posInit = [self.measures.x, self.measures.y]
-        direction = self.measures.compass
+        #direction = 0 #elf.measures.compass #0 90 180 -90
         currentPos = [self.measures.x, self.measures.y]
         distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
         while distance < 2 :
             if(self.measures.compass > direction + 1):
-                self.driveMotors(+0.1,0.09)
+                self.driveMotors(+0.1,0.07)
             elif(self.measures.compass < direction -1):
-                self.driveMotors(0.09,+0.1)
+                self.driveMotors(0.07,+0.1)
             else:
                 self.driveMotors(+0.1,+0.1)
             self.readSensors()
@@ -154,14 +159,43 @@ class MyRob(CRobLinkAngs):
         self.driveMotors(0.00,-0.00)
     
 
+    def angConverter(self, ang):
+        if(ang < 0):
+            return (360- ang)
+        return ang
+
+    # def rotate(self, ang):
+    #     current_ang = self.angConverter(self.measures.compass)
+    #     angle = self.angConverter(ang)
+    #     print(current_ang)
+    #     print(ang)
+    #     if ang == 0:
+    #         if(self.measures.compass > 0):
+    #             while self.measures.compass > 0:
+    #                 self.driveMotors(+0.1,-0.1)
+    #                 self.readSensors()
+    #         else:
+    #             while self.measures.compass < 0:
+    #                 self.driveMotors(-0.1,+0.1)
+    #                 self.readSensors()
+    #     elif current_ang < angle:
+    #         while self.angConverter(self.measures.compass) < self.angConverter(ang):
+    #             self.driveMotors(-0.1,+0.1)
+    #             self.readSensors()
+    #     else:
+    #         while self.angConverter(self.measures.compass) > self.angConverter(ang):
+    #             self.driveMotors(+0.1,-0.1)
+    #             self.readSensors()
+    #     self.driveMotors(0.00,-0.00)
+
     def rotate(self, ang):
         if(ang > 0):
             while self.measures.compass < ang-1:
-                self.driveMotors(-0.01,+0.01)
+                self.driveMotors(-0.1,+0.1)
                 self.readSensors()
         elif(ang < 0):
             while self.measures.compass > ang+1:
-                self.driveMotors(0.01,-0.01)
+                self.driveMotors(0.1,-0.1)
                 self.readSensors()
         self.driveMotors(0.00,-0.00)
 
