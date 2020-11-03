@@ -102,7 +102,7 @@ def astar(maze, start, end, allow_diagonal_movement = False):
                 continue
 
             # Make sure walkable terrain
-            if maze[node_position[0] + new_position[0]][node_position[1] + new_position[1]] != 0:
+            if maze[current_node.position[0] + new_position[0]][current_node.position[1] + new_position[1]] != 0:
                 continue
 
             # Create new node

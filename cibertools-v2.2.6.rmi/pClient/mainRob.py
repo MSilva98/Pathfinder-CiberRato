@@ -146,12 +146,17 @@ class MyRob(CRobLinkAngs):
         currentPos = [self.measures.x, self.measures.y]
         distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
         while distance < 2 :
-            if(self.measures.compass > direction + 1):
-                self.driveMotors(+0.1,0.07)
+            if(direction == 180):
+                if(self.measures.compass > -179):
+                    self.driveMotors(+0.05,0.04)
+                elif(self.measures.compass < 179):
+                    self.driveMotors(0.04,+0.05)
+            elif(self.measures.compass > direction + 1):
+                self.driveMotors(+0.05,0.04)
             elif(self.measures.compass < direction -1):
-                self.driveMotors(0.07,+0.1)
+                self.driveMotors(0.04,+0.05)
             else:
-                self.driveMotors(+0.1,+0.1)
+                self.driveMotors(+0.06,+0.06)
             self.readSensors()
             currentPos = [self.measures.x, self.measures.y]
             distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
@@ -189,14 +194,22 @@ class MyRob(CRobLinkAngs):
     #     self.driveMotors(0.00,-0.00)
 
     def rotate(self, ang):
-        if(ang > 0):
-            while self.measures.compass < ang-1:
-                self.driveMotors(-0.1,+0.1)
+        if(ang == 90):
+            while self.measures.compass < 90:
+                self.driveMotors(-0.05,+0.05)
                 self.readSensors()
-        elif(ang < 0):
-            while self.measures.compass > ang+1:
-                self.driveMotors(0.1,-0.1)
+        elif(ang == 180):
+            while self.measures.compass < 178 and self.measures.compass > -178 :
+                self.driveMotors(-0.05,+0.05)
                 self.readSensors()
+        elif(ang == -90):
+            while self.measures.compass < -90:
+                self.driveMotors(-0.05,+0.05)
+                self.readSensors()
+        elif(ang == 0):
+            while self.measures.compass < 0:
+                self.driveMotors(-0.05,+0.05)
+                self.readSensors() 
         self.driveMotors(0.00,-0.00)
 
     def wander(self):
