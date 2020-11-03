@@ -31,6 +31,7 @@ class MyRob(CRobLinkAngs):
             print("Connection refused or error")
             quit()
 
+        path = astar(maze, start, end)
         state = 'stop'
         stopped_state = 'run'
         self.readSensors()
@@ -59,16 +60,9 @@ class MyRob(CRobLinkAngs):
                 if self.measures.ground==0:
                     self.setVisitingLed(True)
                     self.driveMotors(0.0,0.0)
-                    return
-                #self.wander()
-                #self.moveFrontOne()
-                #self.rotate(90)
-                #self.moveFrontOne()
+                else:
+                    self.followPath(path)
 
-                self.followPath()
-
-                #self.followPath2()
-                return
             elif state=='wait':
                 self.setReturningLed(True)
                 if self.measures.visitingLed==True:
@@ -77,11 +71,13 @@ class MyRob(CRobLinkAngs):
                     state='return'
                 self.driveMotors(0.0,0.0)
             elif state=='return':
+                pathR = astar(maze, end, start)
                 if self.measures.visitingLed==True:
                     self.setVisitingLed(False)
                 if self.measures.returningLed==True:
                     self.setReturningLed(False)
-                #self.wander()
+                self.followPath(pathR)
+                return
             
 
     def moveToGPSPoint(self, point):
@@ -120,7 +116,8 @@ class MyRob(CRobLinkAngs):
             
 
 
-    def followPath(self):
+    def followPath(self, path):
+        print(path)
         while len(path)> 1:
             currentPos = path.pop(0)
             dirToMove = (( path[0][0]) - currentPos[0], (path[0][1] - currentPos[1] ))
@@ -146,17 +143,19 @@ class MyRob(CRobLinkAngs):
         currentPos = [self.measures.x, self.measures.y]
         distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
         while distance < 2 :
+            #if self.measures.ground==0:
+            #    break
             if(direction == 180):
                 if(self.measures.compass > -179):
-                    self.driveMotors(+0.05,0.04)
+                    self.driveMotors(+0.1,0.09)
                 elif(self.measures.compass < 179):
-                    self.driveMotors(0.04,+0.05)
+                    self.driveMotors(0.09,+0.1)
             elif(self.measures.compass > direction + 1):
-                self.driveMotors(+0.05,0.04)
+                self.driveMotors(+0.1,0.09)
             elif(self.measures.compass < direction -1):
-                self.driveMotors(0.04,+0.05)
+                self.driveMotors(0.09,+0.1)
             else:
-                self.driveMotors(+0.06,+0.06)
+                self.driveMotors(+0.1,+0.1)
             self.readSensors()
             currentPos = [self.measures.x, self.measures.y]
             distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
@@ -277,6 +276,9 @@ startCELL = (0,0)
 targetCELL = (0,0)
 challenge = 1
 path = []
+maze = []
+start = ()
+end = ()
 
 for i in range(1, len(sys.argv),2):
     if (sys.argv[i] == "--host" or sys.argv[i] == "-h") and i != len(sys.argv) - 1:
@@ -312,8 +314,7 @@ if __name__ == '__main__':
             print(x)
         start = (startCELL[0]*2 , startCELL[1]*2) # (y,x)
         end = (targetCELL[0]*2 , targetCELL[1]*2)  
-        print(targetCELL*2)
-        path = astar(maze, start, end)
-        print(path)
+
+        
 
     rob.run()
