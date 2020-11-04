@@ -1,5 +1,3 @@
-
-
 import sys
 from croblink import *
 import math
@@ -121,8 +119,9 @@ class MyRob(CRobLinkAngs):
         while len(path)> 1:
             currentPos = path.pop(0)
             dirToMove = (( path[0][0]) - currentPos[0], (path[0][1] - currentPos[1] ))
-            print(dirToMove)
+            print("Move: ", dirToMove)
             if(dirToMove[0] > 0):
+                print("Move down")
                 self.rotate(-90)
                 self.moveFrontOne(-90)
             elif(dirToMove[0] < 0):
@@ -142,6 +141,7 @@ class MyRob(CRobLinkAngs):
         #direction = 0 #elf.measures.compass #0 90 180 -90
         currentPos = [self.measures.x, self.measures.y]
         distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
+
         while distance < 2 :
             #if self.measures.ground==0:
             #    break
@@ -159,13 +159,20 @@ class MyRob(CRobLinkAngs):
             self.readSensors()
             currentPos = [self.measures.x, self.measures.y]
             distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
-            #print(distance)
+            print(distance, currentPos, posInit)
+
         self.driveMotors(0.00,-0.00)
     
+    # Sem considerar o noise
+    def previewMove(self, direction, speed, pos):
+        lin = (speed[0], speed[1])/2
+        x = pos[0] + lin*math.cos(math.radians(direction))
+        y = pos[1] + lin*math.sin(math.radians(direction))
+        return (x,y)
 
     def angConverter(self, ang):
         if(ang < 0):
-            return (360- ang)
+            return (360 - ang)
         return ang
 
     # def rotate(self, ang):
@@ -193,22 +200,51 @@ class MyRob(CRobLinkAngs):
     #     self.driveMotors(0.00,-0.00)
 
     def rotate(self, ang):
+        print("Rotating to ", ang)
         if(ang == 90):
-            while self.measures.compass < 90:
-                self.driveMotors(-0.05,+0.05)
-                self.readSensors()
+            if abs(self.measures.compass) > 90:    
+                while abs(self.measures.compass) > 90:
+                    print("Rotating... ", abs(self.measures.compass))
+                    self.driveMotors(+0.05,-0.05)
+                    self.readSensors()
+            else:
+                while self.measures.compass < 90:
+                    print("Rotating... ", self.measures.compass)
+                    self.driveMotors(-0.05,+0.05)
+                    self.readSensors()
         elif(ang == 180):
-            while self.measures.compass < 178 and self.measures.compass > -178 :
-                self.driveMotors(-0.05,+0.05)
-                self.readSensors()
+            if self.measures.compass > 0:
+                while self.measures.compass < 178 and self.measures.compass > 0:
+                    print("Rotating... ", self.measures.compass)
+                    self.driveMotors(-0.05,+0.05)
+                    self.readSensors()
+            else:
+                while self.measures.compass < 178 and self.measures.compass < 0:
+                    print("Rotating... ", self.measures.compass)
+                    self.driveMotors(+0.05,-0.05)
+                    self.readSensors()
         elif(ang == -90):
-            while self.measures.compass < -90:
-                self.driveMotors(-0.05,+0.05)
-                self.readSensors()
+            if abs(self.measures.compass) > 90: 
+                while abs(self.measures.compass) > 90:    
+                    print("Rotating... ", self.measures.compass)
+                    self.driveMotors(-0.05,+0.05)
+                    self.readSensors()
+            else:
+                while abs(self.measures.compass) < 90:    
+                    print("Rotating... ", self.measures.compass)
+                    self.driveMotors(+0.05,-0.05)
+                    self.readSensors()
         elif(ang == 0):
-            while self.measures.compass < 0:
-                self.driveMotors(-0.05,+0.05)
-                self.readSensors() 
+            if self.measures.compass < 0:
+                while self.measures.compass < 0:
+                    print("Rotating... ", self.measures.compass)
+                    self.driveMotors(-0.05,+0.05)
+                    self.readSensors()
+            else: 
+                while self.measures.compass > 0:
+                    print("Rotating... ", self.measures.compass)
+                    self.driveMotors(+0.05,-0.05)
+                    self.readSensors()
         self.driveMotors(0.00,-0.00)
 
     def wander(self):
@@ -304,10 +340,12 @@ if __name__ == '__main__':
     if mapc != None:
         rob.setMap(mapc.labMap)
         rob.printMap()
-        mapc.obstacleGrid[startCELL[0]*2][startCELL[1]*2] = 5
-        mapc.obstacleGrid[targetCELL[0]*2][targetCELL[1]*2] = 2
+        # mapc.obstacleGrid[startCELL[0]*2][startCELL[1]*2] = 5
+        # mapc.obstacleGrid[targetCELL[0]*2][targetCELL[1]*2] = 2
         
         maze = np.flip(mapc.obstacleGrid,0)
+        maze[startCELL[0]*2][startCELL[1]*2] = 5
+        maze[targetCELL[0]*2][targetCELL[1]*2] = 2
 
         #print(mapc.obstacleGrid)
         for x in maze:
