@@ -145,11 +145,20 @@ class MyRob(CRobLinkAngs):
         while distance < 2 :
             #if self.measures.ground==0:
             #    break
-            if(direction == 180):
-                if(self.measures.compass > -179):
+            if abs(self.measures.compass) < direction - 1:
+                print(self.measures.compass)
+                if self.measures.compass < 0:
+                    print("Correct LEFT")
                     self.driveMotors(+0.1,0.09)
-                elif(self.measures.compass < 179):
+                    print("Corrected: ", self.measures.compass)
+                else:
+                    print("Correct RIGHT")
                     self.driveMotors(0.09,+0.1)
+            # if(direction == 180):
+            #     if(self.measures.compass > -179):
+            #         self.driveMotors(+0.1,0.09)
+            #     elif(self.measures.compass < 179):
+            #         self.driveMotors(0.09,+0.1)
             elif(self.measures.compass > direction + 1):
                 self.driveMotors(+0.1,0.09)
             elif(self.measures.compass < direction -1):
@@ -157,8 +166,10 @@ class MyRob(CRobLinkAngs):
             else:
                 self.driveMotors(+0.1,+0.1)
             self.readSensors()
+
             currentPos = [self.measures.x, self.measures.y]
             distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
+            
             print(distance, currentPos, posInit)
 
         self.driveMotors(0.00,-0.00)
