@@ -86,16 +86,18 @@ class MyRob(CRobLinkAngs):
                     
                     self.printMapV2()
 
-                    # print(self.maze[self.end[0]][self.end[1]], self.end)
-                    # print(self.maze[self.start[0]][self.start[1]], self.start)
-                    print(self.end, self.start)
+                    print(self.end, self.start, self.maze[self.start[0]][self.start[1]], self.maze[self.end[0]][self.end[1]])
                     pathR = astar(self.maze, self.end, self.start)
+                    savedPath = pathR.copy()
 
                 if self.measures.visitingLed==True:
                     self.setVisitingLed(False)
                 if self.measures.returningLed==True:
                     self.setReturningLed(False)
                 self.followPath(pathR)
+                if challenge == '2':
+                    print(savedPath)
+                    self.saveMap(savedPath)
                 return
             # elif state == 'explore':
             #     self.exploreMap()
@@ -385,12 +387,13 @@ class MyRob(CRobLinkAngs):
                     print("front left wall")
                     direction = self.rotateRight(direction)
                 else:
-                    # direction = self.rotateLeft(direction)
-                    choice = np.random.choice(2,1)
-                    if choice == 0:
-                        direction = self.rotateRight(direction)
-                    else:
-                        direction = self.rotateLeft(direction) 
+                    # used for testing astar (in -p 5 robot turns right in direction to target)
+                    direction = self.rotateRight(direction)
+                    # choice = np.random.choice(2,1)
+                    # if choice == 0:
+                    #     direction = self.rotateRight(direction)
+                    # else:
+                    #     direction = self.rotateLeft(direction) 
 
             if self.measures.irSensor[self.left_id] > thresholdSides:           # left wall     CASE: LEFT
                 if direction == 0:
@@ -420,7 +423,6 @@ class MyRob(CRobLinkAngs):
                     self.maze[coord[0]+1][coord[1]] = 1
                     print("ADDED RIGHT WALL -> ", coord)
 
-            # NOT WORKING 100%
             if direction == 0:
                 if self.maze[coord[0]][coord[1]+1] == 0:
                     print("MOVE NORTH")
@@ -487,7 +489,7 @@ class MyRob(CRobLinkAngs):
             if self.measures.ground == 0:
                 end = (round(self.measures.y-self.dY), round(self.measures.x-self.dX))
                 # Assign 2 to goal   
-                self.maze[end[0]][end[1]] = 2   
+                self.maze[end[0]][end[1]] = 2  
                 return 
 
     def rotateBack(self, direction):
@@ -542,6 +544,35 @@ class MyRob(CRobLinkAngs):
                     self.start = (x,y)
                 elif maze[x][y] == 2:
                     self.end = (x,y)
+                # elif maze[x][y] == 8:
+                #     maze[x][y] = 1
+
+    def saveMap(self, path):
+        f = open("map.txt", "w+")
+
+        for r in range(len(self.maze)):
+            s = ""
+            for c in range(len(self.maze[r])):
+                if self.maze[r][c] == 8:
+                    s += " "
+                elif self.maze[r][c] == 1:
+                    if r%2 == 0:
+                        s += "|"
+                    else:
+                        s += "-"
+                elif self.maze[r][c] == 0:
+                    # print((r,c), path)
+                    if (r,c) in path or (r+1,c) in path or (r-1,c) in path or (r,c+1) in path or (r,c-1) in path:
+                        s += "p"
+                    else:
+                        s += "v"
+                elif self.maze[r][c] == 5:
+                    s += "S"
+                elif self.maze[r][c] == 2:
+                    s += "E"
+            s += "\n"
+            f.write(s)
+        f.close()
 
     def wander(self):
         center_id = 0
