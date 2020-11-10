@@ -6,15 +6,15 @@
                                                        
                                                        
                                                        
-                                   |     |||           
+                                   --     --           
                                    ppppppppE           
-                                  |p|||                
-                                  -ppp-                
-                           |||||    |p|                
-                           Spppp-    p                 
-                           ||||p|||||p|                
-                              -ppppppp-                
-                               ||  |||                 
+                                  -p--- ---            
+                                  |ppp|                
+                           -----    -p                 
+                           Spppp|    p                 
+                           ----p-----p                 
+                              |ppppppp|                
+                               -    --                 
                                                        
                                                        
                                                        

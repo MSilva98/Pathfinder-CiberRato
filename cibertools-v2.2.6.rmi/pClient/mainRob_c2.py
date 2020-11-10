@@ -99,9 +99,6 @@ class MyRob(CRobLinkAngs):
                     print(savedPath)
                     self.saveMap(savedPath)
                 return
-            # elif state == 'explore':
-            #     self.exploreMap()
-            #     state == 'wait'
             
     def printMapV2(self):
         with np.printoptions(threshold=np.inf, linewidth=np.inf):
@@ -557,9 +554,9 @@ class MyRob(CRobLinkAngs):
                     s += " "
                 elif self.maze[r][c] == 1:
                     if r%2 == 0:
-                        s += "|"
-                    else:
                         s += "-"
+                    else:
+                        s += "|"
                 elif self.maze[r][c] == 0:
                     # print((r,c), path)
                     if (r,c) in path or (r+1,c) in path or (r-1,c) in path or (r,c+1) in path or (r,c-1) in path:
