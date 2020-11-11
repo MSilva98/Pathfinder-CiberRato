@@ -30,10 +30,11 @@ class MyRob(CRobLinkAngs):
             quit()
 
         path = astar(maze, start, end)
+        print(path)
         state = 'stop'
         stopped_state = 'run'
         self.readSensors()
-        self.startPosition = (self.measures.y, self.measures.x)
+        self.startPosition = (self.measures.x, self.measures.y)
         while True:
             self.readSensors()
             #print(self.measures.ground)
@@ -60,6 +61,7 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(0.0,0.0)
                 else:
                     self.followPath(path)
+                    self.driveMotors(0.00,-0.00)
 
             elif state=='wait':
                 self.setReturningLed(True)
@@ -81,16 +83,16 @@ class MyRob(CRobLinkAngs):
     def moveToGPSPoint(self, point):
         northVec = [0,1]
         while self.measures.y > point[0] + 0.3 or self.measures.y < point[0] - 0.3  or self.measures.x > point[1] + 0.3 or self.measures.x < point[1] - 0.3:
-            print(self.measures.y)
-            print(self.measures.x)
-            print("MOVE TO POINT:" + str(point))
+            #print(self.measures.y)
+            #print(self.measures.x)
+            #print("MOVE TO POINT:" + str(point))
             dirVec = [point[0] - self.measures.y, point[1] - self.measures.x]
             #PODE NÂO RESULTAR POIS CALCULA O ANGULO SEMPRE POSITIVO E NUNCA NEGATIVO
             unit_vector_1 = northVec / np.linalg.norm(northVec)
             unit_vector_2 = dirVec / np.linalg.norm(dirVec)
             dot_product = np.dot(unit_vector_1, unit_vector_2)
             angle = np.arccos(dot_product)  
-            print(math.degrees(angle))
+            #print(math.degrees(angle))
             #if(point[0] < self.startPosition[0]):
             #    angle = -angle
             self.rotate(math.degrees(angle))
@@ -100,80 +102,159 @@ class MyRob(CRobLinkAngs):
 
 
     def cellToGPSPoint(self, cell):
-        return [self.startPosition[0] + cell[0] - startCELL[0]*2 , self.startPosition[1] + cell[1] - startCELL[1]*2]
-    
-    def moveToCell(self, cell):
-        print("MOVE TO CELL:" + str(cell))
-        self.moveToGPSPoint(self.cellToGPSPoint(cell))
-        
-    def followPath2(self):
-        print(path)
-        path.pop(0)
-        while len(path)> 1:
-            self.moveToCell(path.pop(0))
-            
+        print("cell: ", cell, " startCell: ", startCELL)
+        return [self.startPosition[0] + cell[0] - startCELL[1]*2 , self.startPosition[1] + cell[1] - startCELL[0]*2]
+
 
 
     def followPath(self, path):
-        print(path)
+        #print(path)
         while len(path)> 1:
-            currentPos = path.pop(0)
-            dirToMove = (( path[0][0]) - currentPos[0], (path[0][1] - currentPos[1] ))
-            print("Move: ", dirToMove)
+            current = path.pop(0)
+            currentPos = [current[1], current[0]] 
+            dirToMove = (( path[0][1]) - currentPos[0], (path[0][0] - currentPos[1] ))
+            print(dirToMove, path[0],  currentPos)
             if(dirToMove[0] > 0):
-                print("Move down")
-                self.rotate(-90)
-                self.moveFrontOne(-90)
-            elif(dirToMove[0] < 0):
-                self.rotate(90)
-                self.moveFrontOne(90)
-            if(dirToMove[1] > 0):
                 self.rotate(0)
-                self.moveFrontOne(0)
-            elif(dirToMove[1] < 0):
+                self.moveFrontOne(0, currentPos)
+            elif(dirToMove[0] < 0):
                 self.rotate(180)
-                self.moveFrontOne(180)
+                self.moveFrontOne(180, currentPos)
+            if(dirToMove[1] > 0):
+                self.rotate(90)
+                self.moveFrontOne(90, currentPos)
+            elif(dirToMove[1] < 0):
+                self.rotate(-90)
+                self.moveFrontOne(-90, currentPos)
+            self.driveMotors(0.00,-0.00)
             
 
 
-    def moveFrontOne(self, direction):
+    def moveFrontOne(self, direction, pos):
+        print("MOVE TO " + str(direction))
         posInit = [self.measures.x, self.measures.y]
-        #direction = 0 #elf.measures.compass #0 90 180 -90
         currentPos = [self.measures.x, self.measures.y]
-        distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
-
-        while distance < 2 :
-            #if self.measures.ground==0:
+        gpsPos = self.cellToGPSPoint(pos) #é suposto estar neste ponto
+        print(gpsPos, pos, posInit)
+        if(direction == 0):
+            gpsDest = [gpsPos[0] + 2 , gpsPos[1] ]
+        elif(direction == 180):
+            gpsDest = [gpsPos[0] - 2, gpsPos[1] ]
+        elif(direction == 90):
+            gpsDest = [gpsPos[0], gpsPos[1] +2]
+        elif(direction == -90):
+            gpsDest = [gpsPos[0] , gpsPos[1] -2]
+        move = True
+        while move:
+            # if self.measures.ground==0:
             #    break
-            if abs(self.measures.compass) < direction - 1:
-                print(self.measures.compass)
-                if self.measures.compass < 0:
-                    print("Correct LEFT")
+            if(direction == 0):
+                if currentPos[1]> gpsPos[1] + 0.1:
+                    self.driveMotors(+0.1,0.08)
+                elif currentPos[1]< gpsPos[1] -0.1:
+                    self.driveMotors(0.08,+0.1)
+                elif abs(self.measures.compass) < direction - 1:
+                    if self.measures.compass < 0:
+                        self.driveMotors(+0.1,0.09)
+                    else:
+                        self.driveMotors(0.09,+0.1)
+                elif(self.measures.compass > direction + 1):
                     self.driveMotors(+0.1,0.09)
-                    print("Corrected: ", self.measures.compass)
-                else:
-                    print("Correct RIGHT")
+                elif(self.measures.compass < direction -1):
                     self.driveMotors(0.09,+0.1)
-            # if(direction == 180):
-            #     if(self.measures.compass > -179):
+                else:
+                    self.driveMotors(0.1,0.1)
+            elif(direction == 180):
+                if currentPos[1]> gpsPos[1] + 0.1:
+                    self.driveMotors(0.08,+0.1)
+                elif currentPos[1]< gpsPos[1] -0.1:
+                    self.driveMotors(0.1,+0.08)
+                elif abs(self.measures.compass) < direction - 1:
+                    if self.measures.compass < 0:
+                        self.driveMotors(+0.1,0.09)
+                    else:
+                        self.driveMotors(0.09,+0.1)
+                elif(self.measures.compass > direction + 1):
+                    self.driveMotors(+0.1,0.09)
+                elif(self.measures.compass < direction -1):
+                    self.driveMotors(0.09,+0.1)
+                else:
+                    self.driveMotors(0.1,0.1)
+            elif(direction == 90):
+                if currentPos[0]> gpsPos[0] + 0.1:
+                    self.driveMotors(+0.08,0.1)
+                elif currentPos[0]< gpsPos[0] -0.1:
+                    self.driveMotors(0.1,+0.08)
+                elif abs(self.measures.compass) < direction - 1:
+                    if self.measures.compass < 0:
+                        self.driveMotors(+0.1,0.09)
+                    else:
+                        self.driveMotors(0.09,+0.1)
+                elif(self.measures.compass > direction + 1):
+                    self.driveMotors(+0.1,0.09)
+                elif(self.measures.compass < direction -1):
+                    self.driveMotors(0.09,+0.1)
+                else:
+                    self.driveMotors(0.1,0.1)
+            elif(direction == -90):
+                if currentPos[0]> gpsPos[0] + 0.1:
+                    self.driveMotors(0.1,+0.08)
+                elif currentPos[0]< gpsPos[0] -0.1:
+                    self.driveMotors(0.08,+0.1)
+                elif abs(self.measures.compass) < direction - 1:
+                    if self.measures.compass < 0:
+                        self.driveMotors(+0.1,0.09)
+                    else:
+                        self.driveMotors(0.09,+0.1)
+                elif(self.measures.compass > direction + 1):
+                    self.driveMotors(+0.1,0.09)
+                elif(self.measures.compass < direction -1):
+                    self.driveMotors(0.09,+0.1)
+                else:
+                    self.driveMotors(0.1,0.1)
+            # elif abs(self.measures.compass) < direction - 1:
+            #     #print(self.measures.compass)
+            #     if self.measures.compass < 0:
+            #         #print("Correct LEFT")
             #         self.driveMotors(+0.1,0.09)
-            #     elif(self.measures.compass < 179):
+            #         #print("Corrected: ", self.measures.compass)
+            #     else:
+            #         #print("Correct RIGHT")
             #         self.driveMotors(0.09,+0.1)
-            elif(self.measures.compass > direction + 1):
-                self.driveMotors(+0.1,0.09)
-            elif(self.measures.compass < direction -1):
-                self.driveMotors(0.09,+0.1)
-            else:
-                self.driveMotors(+0.1,+0.1)
+            # elif(self.measures.compass > direction + 1):
+            #     self.driveMotors(+0.1,0.09)
+            # elif(self.measures.compass < direction -1):
+            #     self.driveMotors(0.09,+0.1)
+            # else:
+            #     self.driveMotors(+0.1,+0.1)
             self.readSensors()
 
             currentPos = [self.measures.x, self.measures.y]
-            distance = math.hypot(currentPos[0] - posInit[0], currentPos[1] - posInit[1])
             
-            print(distance, currentPos, posInit)
+            print(gpsPos, currentPos, gpsDest)
 
+            if(direction == 0):
+                if(currentPos[0] > gpsDest[0] -0.1 ):
+                    move  = False
+            elif(direction == 180):
+                if(currentPos[0] < gpsDest[0] +0.1 ):
+                    move  = False
+            elif(direction == 90):
+                if(currentPos[1] > gpsDest[1] -0.1 ):
+                    move  = False
+            elif(direction == -90):
+                if(currentPos[1] < gpsDest[1] +0.1 ):
+                    move  = False
+
+
+        print("CHEGOU A CELULA")
         self.driveMotors(0.00,-0.00)
     
+    #def errorCorrection(self, ang):
+    #     if(ang > 0):
+            
+
+
     # Sem considerar o noise
     def previewMove(self, direction, speed, pos):
         lin = (speed[0], speed[1])/2
@@ -211,7 +292,7 @@ class MyRob(CRobLinkAngs):
     #     self.driveMotors(0.00,-0.00)
 
     def rotate(self, ang):
-        print("Rotating to ", ang)
+        #print("Rotating to ", ang)
         if(ang == 90):
             if abs(self.measures.compass) > 90:    
                 while abs(self.measures.compass) > 90:
@@ -346,23 +427,33 @@ for i in range(1, len(sys.argv),2):
         print("Unkown argument", sys.argv[i])
         quit()
 
+
 if __name__ == '__main__':
     rob=MyRob(rob_name,pos,[0.0,60.0,-60.0,180.0],host)
     if mapc != None:
         rob.setMap(mapc.labMap)
         rob.printMap()
-        # mapc.obstacleGrid[startCELL[0]*2][startCELL[1]*2] = 5
-        # mapc.obstacleGrid[targetCELL[0]*2][targetCELL[1]*2] = 2
+        mapc.obstacleGrid[startCELL[0]*2][startCELL[1]*2] = 5
+        mapc.obstacleGrid[targetCELL[0]*2][targetCELL[1]*2] = 2
         
-        maze = np.flip(mapc.obstacleGrid,0)
-        maze[startCELL[0]*2][startCELL[1]*2] = 5
-        maze[targetCELL[0]*2][targetCELL[1]*2] = 2
+        #maze = np.flip(mapc.obstacleGrid,0)
+        maze = mapc.obstacleGrid
+        #maze[startCELL[1]*2][startCELL[0]*2] = 5
+        #maze[targetCELL[1]*2][targetCELL[0]*2] = 2
+
+        for x in range(len(maze)):
+            for y in range(len(maze[x])):
+                if maze[x][y] == 5:
+                    start = (x,y)
+                elif maze[x][y] == 2:
+                    end = (x,y)
+
 
         #print(mapc.obstacleGrid)
         for x in maze:
             print(x)
-        start = (startCELL[0]*2 , startCELL[1]*2) # (y,x)
-        end = (targetCELL[0]*2 , targetCELL[1]*2)  
+        #start = (startCELL[1]*2 , startCELL[0]*2) # (y,x)
+        #end = (targetCELL[1]*2 , targetCELL[0]*2)  
 
         
 
