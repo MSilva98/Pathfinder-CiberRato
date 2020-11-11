@@ -43,7 +43,7 @@ class MyRob(CRobLinkAngs):
             #print(self.measures.x)
             #print(self.measures.y)
             if self.measures.endLed:
-                print(self.rob_name + " exiting")
+                print(self.robName + " exiting")
                 quit()
 
             if state == 'stop' and self.measures.start:
@@ -71,13 +71,15 @@ class MyRob(CRobLinkAngs):
                     state='return'
                 self.driveMotors(0.0,0.0)
             elif state=='return':
+                print("RETURN")
                 pathR = astar(maze, end, start)
+                print(pathR)
                 if self.measures.visitingLed==True:
                     self.setVisitingLed(False)
                 if self.measures.returningLed==True:
                     self.setReturningLed(False)
                 self.followPath(pathR)
-                return
+                self.finish()
             
 
     def moveToGPSPoint(self, point):
@@ -150,9 +152,9 @@ class MyRob(CRobLinkAngs):
             #    break
             if(direction == 0):
                 if currentPos[1]> gpsPos[1] + 0.1:
-                    self.driveMotors(+0.1,0.08)
+                    self.driveMotors(+0.1,0.09)
                 elif currentPos[1]< gpsPos[1] -0.1:
-                    self.driveMotors(0.08,+0.1)
+                    self.driveMotors(0.09,+0.1)
                 elif abs(self.measures.compass) < direction - 1:
                     if self.measures.compass < 0:
                         self.driveMotors(+0.1,0.09)
@@ -166,9 +168,9 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(0.1,0.1)
             elif(direction == 180):
                 if currentPos[1]> gpsPos[1] + 0.1:
-                    self.driveMotors(0.08,+0.1)
+                    self.driveMotors(0.09,+0.1)
                 elif currentPos[1]< gpsPos[1] -0.1:
-                    self.driveMotors(0.1,+0.08)
+                    self.driveMotors(0.1,+0.09)
                 elif abs(self.measures.compass) < direction - 1:
                     if self.measures.compass < 0:
                         self.driveMotors(+0.1,0.09)
@@ -182,9 +184,9 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(0.1,0.1)
             elif(direction == 90):
                 if currentPos[0]> gpsPos[0] + 0.1:
-                    self.driveMotors(+0.08,0.1)
+                    self.driveMotors(+0.09,0.1)
                 elif currentPos[0]< gpsPos[0] -0.1:
-                    self.driveMotors(0.1,+0.08)
+                    self.driveMotors(0.1,+0.09)
                 elif abs(self.measures.compass) < direction - 1:
                     if self.measures.compass < 0:
                         self.driveMotors(+0.1,0.09)
@@ -198,9 +200,9 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(0.1,0.1)
             elif(direction == -90):
                 if currentPos[0]> gpsPos[0] + 0.1:
-                    self.driveMotors(0.1,+0.08)
+                    self.driveMotors(0.1,+0.09)
                 elif currentPos[0]< gpsPos[0] -0.1:
-                    self.driveMotors(0.08,+0.1)
+                    self.driveMotors(0.09,+0.1)
                 elif abs(self.measures.compass) < direction - 1:
                     if self.measures.compass < 0:
                         self.driveMotors(+0.1,0.09)
@@ -211,7 +213,7 @@ class MyRob(CRobLinkAngs):
                 elif(self.measures.compass < direction -1):
                     self.driveMotors(0.09,+0.1)
                 else:
-                    self.driveMotors(0.1,0.1)
+                    self.driveMotors(0.2,0.2)
             # elif abs(self.measures.compass) < direction - 1:
             #     #print(self.measures.compass)
             #     if self.measures.compass < 0:
@@ -288,11 +290,9 @@ class MyRob(CRobLinkAngs):
     #     else:
     #         while self.angConverter(self.measures.compass) > self.angConverter(ang):
     #             self.driveMotors(+0.1,-0.1)
-    #             self.readSensors()
-    #     self.driveMotors(0.00,-0.00)
-
+    #             self.readSensors()Rotating
     def rotate(self, ang):
-        #print("Rotating to ", ang)
+        print("ROTARING to ", ang)
         if(ang == 90):
             if abs(self.measures.compass) > 90:    
                 while abs(self.measures.compass) > 90:
@@ -305,13 +305,13 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(-0.05,+0.05)
                     self.readSensors()
         elif(ang == 180):
-            if self.measures.compass > 0:
-                while self.measures.compass < 178 and self.measures.compass > 0:
+            if self.measures.compass >= 0:
+                while self.measures.compass < 178 and self.measures.compass >= 0:
                     print("Rotating... ", self.measures.compass)
                     self.driveMotors(-0.05,+0.05)
                     self.readSensors()
             else:
-                while self.measures.compass < 178 and self.measures.compass < 0:
+                while self.measures.compass < 178 and self.measures.compass <= 0:
                     print("Rotating... ", self.measures.compass)
                     self.driveMotors(+0.05,-0.05)
                     self.readSensors()
