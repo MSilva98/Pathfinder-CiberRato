@@ -171,9 +171,9 @@ class MyRob(CRobLinkAngs):
         move = True
 
         while move:
-            if self.measures.irSensor[self.center_id] > 2.5:
+            if self.measures.irSensor[self.center_id] > 6:
                 self.driveMotors(0.0,0.0)
-                break
+                return [pos[1], pos[0]]
 
             if(direction == 0):
                 if currentPos[1] > gpsPos[1] + 0.1:
@@ -189,6 +189,10 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(+0.1,0.09)
                 elif(self.measures.compass < direction -1):
                     self.driveMotors(0.09,+0.1)
+                elif self.measures.irSensor[self.left_id] > 2:
+                    self.driveMotors(0.1,0.09)
+                elif self.measures.irSensor[self.right_id] > 2:
+                    self.driveMotors(0.09,0.1)
                 else:
                     self.driveMotors(0.1,0.1)
             elif(direction == 180):
@@ -205,6 +209,10 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(+0.1,0.09)
                 elif(self.measures.compass < direction -1):
                     self.driveMotors(0.09,+0.1)
+                elif self.measures.irSensor[self.left_id] > 2:
+                    self.driveMotors(0.1,0.09)
+                elif self.measures.irSensor[self.right_id] > 2:
+                    self.driveMotors(0.09,0.1)
                 else:
                     self.driveMotors(0.1,0.1)
             elif(direction == 90):
@@ -221,6 +229,10 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(+0.1,0.09)
                 elif(self.measures.compass < direction -1):
                     self.driveMotors(0.09,+0.1)
+                elif self.measures.irSensor[self.left_id] > 2:
+                    self.driveMotors(0.1,0.09)
+                elif self.measures.irSensor[self.right_id] > 2:
+                    self.driveMotors(0.09,0.1)
                 else:
                     self.driveMotors(0.1,0.1)
             elif(direction == -90):
@@ -237,8 +249,12 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(+0.1,0.09)
                 elif(self.measures.compass < direction -1):
                     self.driveMotors(0.09,+0.1)
+                elif self.measures.irSensor[self.left_id] > 2:
+                    self.driveMotors(0.1,0.09)
+                elif self.measures.irSensor[self.right_id] > 2:
+                    self.driveMotors(0.09,0.1)
                 else:
-                    self.driveMotors(0.2,0.2)
+                    self.driveMotors(0.1,0.1)
 
             self.readSensors()
 
@@ -336,6 +352,7 @@ class MyRob(CRobLinkAngs):
         while True:    
             self.readSensors()
             
+            print(self.measures.irSensor)
             # print(self.maze[coord[0]+5])
             # print(self.maze[coord[0]+4])
             # print(self.maze[coord[0]+3])

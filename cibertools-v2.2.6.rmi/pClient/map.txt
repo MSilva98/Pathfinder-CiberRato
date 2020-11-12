@@ -6,17 +6,17 @@
                                                        
                                                        
                                                        
-                              ---                      
-                              |v|                      
-                              -p                       
-                              |ppppppp|                
-                           ----p ----p                 
-                           Spppp|    p                 
-                           ------ -- p                 
-                                  |ppp                 
-                                   p --  --            
-                                   ppppppppE           
-                                   -                   
+                                     -   --            
+                                     ppppppE           
+                                  -- p                 
+                                  |ppp|                
+                             ------p --                
+                           Spppppppp|                  
+                           --                          
+                                                       
+                                                       
+                                                       
+                                                       
                                                        
                                                        
                                                        
