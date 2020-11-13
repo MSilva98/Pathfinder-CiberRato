@@ -130,8 +130,6 @@ class MyRob(CRobLinkAngs):
                 self.moveFrontOne(-90, currentPos)
             self.driveMotors(0.00,-0.00)
             
-
-
     def moveFrontOne(self, direction, pos):
         print("MOVE TO " + str(direction))
         posInit = [self.measures.x, self.measures.y]
@@ -147,9 +145,80 @@ class MyRob(CRobLinkAngs):
         elif(direction == -90):
             gpsDest = [gpsPos[0] , gpsPos[1] -2]
         move = True
+        prevTime = self.measures.time
         while move:
-            # if self.measures.ground==0:
-            #    break
+            err = self.errorCorrection(direction, gpsPos)
+            #print("ERROR: ", err)
+            if(direction == 0):
+                self.driveMotors(0.1 - err , 0.1 + err)
+            elif(direction == 180):
+                self.driveMotors(0.1 - err ,0.1 + err)
+            elif(direction == 90):
+                self.driveMotors(0.1 - err, 0.1 + err)
+            elif(direction == -90):
+                self.driveMotors(0.1 - err ,0.1 + err)
+            self.readSensors()
+
+            currentPos = [self.measures.x, self.measures.y]
+            
+            #print(gpsPos, currentPos, gpsDest)
+
+            if(direction == 0):
+                if(currentPos[0] > gpsDest[0] -0.1 ):
+                    move  = False
+            elif(direction == 180):
+                if(currentPos[0] < gpsDest[0] +0.1 ):
+                    move  = False
+            elif(direction == 90):
+                if(currentPos[1] > gpsDest[1] -0.1 ):
+                    move  = False
+            elif(direction == -90):
+                if(currentPos[1] < gpsDest[1] +0.1 ):
+                    move  = False
+
+        #print("TIME: ", self.measures.time - prevTime)
+        print("CHEGOU A CELULA")
+        self.driveMotors(0.00,-0.00)
+    
+    def errorCorrection(self, direction, pos):
+
+        errorDir = direction - self.measures.compass  # directional error
+        if(self.measures.compass < 0 and direction == 180):
+            errorDir =  - (direction - abs(self.measures.compass))  # directional error
+        if(direction == 0):
+            errorGeo =  pos[1] - self.measures.y #Geographical error
+        elif(direction == 180):
+            errorGeo =  self.measures.y - pos[1]
+        elif(direction == -90):
+            errorGeo =  pos[0] - self.measures.x #Geographical error
+        else:
+            errorGeo =  self.measures.x - pos[0]
+        # if(errorGeo < 0):
+        #     errorGeo = errorGeo + errorGeo/2
+        # else:
+        #     errorGeo = errorGeo - errorGeo/2
+        if errorGeo > 0.2:
+            quit()
+        return errorDir*0.01 + errorGeo*0.1
+
+
+    def moveFrontOne2(self, direction, pos):
+        print("MOVE TO " + str(direction))
+        posInit = [self.measures.x, self.measures.y]
+        currentPos = [self.measures.x, self.measures.y]
+        gpsPos = self.cellToGPSPoint(pos) #é suposto estar neste ponto
+        print(gpsPos, pos, posInit)
+        if(direction == 0):
+            gpsDest = [gpsPos[0] + 2 , gpsPos[1] ]
+        elif(direction == 180):
+            gpsDest = [gpsPos[0] - 2, gpsPos[1] ]
+        elif(direction == 90):
+            gpsDest = [gpsPos[0], gpsPos[1] +2]
+        elif(direction == -90):
+            gpsDest = [gpsPos[0] , gpsPos[1] -2]
+        move = True
+        prevTime = self.measures.time
+        while self.measures.time - prevTime < 21:
             if(direction == 0):
                 if currentPos[1]> gpsPos[1] + 0.1:
                     self.driveMotors(+0.1,0.09)
@@ -213,22 +282,7 @@ class MyRob(CRobLinkAngs):
                 elif(self.measures.compass < direction -1):
                     self.driveMotors(0.09,+0.1)
                 else:
-                    self.driveMotors(0.2,0.2)
-            # elif abs(self.measures.compass) < direction - 1:
-            #     #print(self.measures.compass)
-            #     if self.measures.compass < 0:
-            #         #print("Correct LEFT")
-            #         self.driveMotors(+0.1,0.09)
-            #         #print("Corrected: ", self.measures.compass)
-            #     else:
-            #         #print("Correct RIGHT")
-            #         self.driveMotors(0.09,+0.1)
-            # elif(self.measures.compass > direction + 1):
-            #     self.driveMotors(+0.1,0.09)
-            # elif(self.measures.compass < direction -1):
-            #     self.driveMotors(0.09,+0.1)
-            # else:
-            #     self.driveMotors(+0.1,+0.1)
+                    self.driveMotors(0.1,0.1)
             self.readSensors()
 
             currentPos = [self.measures.x, self.measures.y]
@@ -248,7 +302,7 @@ class MyRob(CRobLinkAngs):
                 if(currentPos[1] < gpsDest[1] +0.1 ):
                     move  = False
 
-
+        print("TIME: ", self.measures.time - prevTime)
         print("CHEGOU A CELULA")
         self.driveMotors(0.00,-0.00)
     
