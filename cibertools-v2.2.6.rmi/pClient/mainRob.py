@@ -37,11 +37,6 @@ class MyRob(CRobLinkAngs):
         self.startPosition = (self.measures.x, self.measures.y)
         while True:
             self.readSensors()
-            #print(self.measures.ground)
-            #print(self.measures.groundReady)
-            #print(self.measures.compass)
-            #print(self.measures.x)
-            #print(self.measures.y)
             if self.measures.endLed:
                 print(self.robName + " exiting")
                 quit()
@@ -81,25 +76,6 @@ class MyRob(CRobLinkAngs):
                 self.followPath(pathR)
                 self.finish()
             
-
-    def moveToGPSPoint(self, point):
-        northVec = [0,1]
-        while self.measures.y > point[0] + 0.3 or self.measures.y < point[0] - 0.3  or self.measures.x > point[1] + 0.3 or self.measures.x < point[1] - 0.3:
-            #print(self.measures.y)
-            #print(self.measures.x)
-            #print("MOVE TO POINT:" + str(point))
-            dirVec = [point[0] - self.measures.y, point[1] - self.measures.x]
-            #PODE NÂO RESULTAR POIS CALCULA O ANGULO SEMPRE POSITIVO E NUNCA NEGATIVO
-            unit_vector_1 = northVec / np.linalg.norm(northVec)
-            unit_vector_2 = dirVec / np.linalg.norm(dirVec)
-            dot_product = np.dot(unit_vector_1, unit_vector_2)
-            angle = np.arccos(dot_product)  
-            #print(math.degrees(angle))
-            #if(point[0] < self.startPosition[0]):
-            #    angle = -angle
-            self.rotate(math.degrees(angle))
-            self.driveMotors(0.03,0.03)
-            self.readSensors()
         
 
 
@@ -110,7 +86,6 @@ class MyRob(CRobLinkAngs):
 
 
     def followPath(self, path):
-        #print(path)
         while len(path)> 1:
             current = path.pop(0)
             currentPos = [current[1], current[0]] 
@@ -148,15 +123,7 @@ class MyRob(CRobLinkAngs):
         prevTime = self.measures.time
         while move:
             err = self.errorCorrection(direction, gpsPos)
-            #print("ERROR: ", err)
-            if(direction == 0):
-                self.driveMotors(0.1 - err , 0.1 + err)
-            elif(direction == 180):
-                self.driveMotors(0.1 - err ,0.1 + err)
-            elif(direction == 90):
-                self.driveMotors(0.1 - err, 0.1 + err)
-            elif(direction == -90):
-                self.driveMotors(0.1 - err ,0.1 + err)
+            self.driveMotors(0.1 - err , 0.1 + err)
             self.readSensors()
 
             currentPos = [self.measures.x, self.measures.y]
@@ -193,10 +160,6 @@ class MyRob(CRobLinkAngs):
             errorGeo =  pos[0] - self.measures.x #Geographical error
         else:
             errorGeo =  self.measures.x - pos[0]
-        # if(errorGeo < 0):
-        #     errorGeo = errorGeo + errorGeo/2
-        # else:
-        #     errorGeo = errorGeo - errorGeo/2
         if errorGeo > 0.2:
             quit()
         return errorDir*0.01 + errorGeo*0.1
@@ -306,11 +269,7 @@ class MyRob(CRobLinkAngs):
         print("CHEGOU A CELULA")
         self.driveMotors(0.00,-0.00)
     
-    #def errorCorrection(self, ang):
-    #     if(ang > 0):
-            
-
-
+ 
     # Sem considerar o noise
     def previewMove(self, direction, speed, pos):
         lin = (speed[0], speed[1])/2
@@ -323,28 +282,7 @@ class MyRob(CRobLinkAngs):
             return (360 - ang)
         return ang
 
-    # def rotate(self, ang):
-    #     current_ang = self.angConverter(self.measures.compass)
-    #     angle = self.angConverter(ang)
-    #     print(current_ang)
-    #     print(ang)
-    #     if ang == 0:
-    #         if(self.measures.compass > 0):
-    #             while self.measures.compass > 0:
-    #                 self.driveMotors(+0.1,-0.1)
-    #                 self.readSensors()
-    #         else:
-    #             while self.measures.compass < 0:
-    #                 self.driveMotors(-0.1,+0.1)
-    #                 self.readSensors()
-    #     elif current_ang < angle:
-    #         while self.angConverter(self.measures.compass) < self.angConverter(ang):
-    #             self.driveMotors(-0.1,+0.1)
-    #             self.readSensors()
-    #     else:
-    #         while self.angConverter(self.measures.compass) > self.angConverter(ang):
-    #             self.driveMotors(+0.1,-0.1)
-    #             self.readSensors()Rotating
+
     def rotate(self, ang):
         print("ROTARING to ", ang)
         if(ang == 90):
