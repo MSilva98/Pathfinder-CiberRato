@@ -8,15 +8,15 @@
                                                        
                                                        
                                                        
-                              ---------                
-                              |ppppppp|                
-                          -----p-----p-                
-                           Spppp|    p                 
-                          ------- ---p-                
-                                  |ppp|                
-                                  -p--- ---            
-                                   ppppppppE           
-                                  ---                  
+                                                       
+                                   |||||p|||           
+                                   -ppppppp-           
+                           |||||||||p|||p|p|||         
+                            Spppppppp-   -ppv-         
+                           |||||||||p|   |p|||||       
+                                         pppppE        
+                                            p|||       
+                                                       
                                                        
                                                        
                                                        

@@ -65,7 +65,7 @@ def astar2(maze, start, end, allow_diagonal_movement = False):
     # Adding a stop condition
     outer_iterations = 0
     max_iterations = (len(maze[0]) * len(maze) // 2)
-    print("MAX ITERATIONS", max_iterations)
+    # print("MAX ITERATIONS", max_iterations)
     #max_iterations = 500
     max_iterations = (len(maze[0]) * len(maze))
 
