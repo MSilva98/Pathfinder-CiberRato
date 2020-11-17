@@ -314,8 +314,9 @@ class MyRob(CRobLinkAngs):
             # print(self.maze[coord[0]+2])
             # print(self.maze[coord[0]+3])
             # print(self.maze[coord[0]+4])
-
+            self.ring = 2
             unknownCell = self.getunknownCell(coord)
+
             #unknownCell = (18,44)
             print("coord:", coord)
             print("unknownCell: ", unknownCell)
@@ -393,7 +394,7 @@ class MyRob(CRobLinkAngs):
         while True:
             adjacent_cells = ((0, -self.ring), (0, self.ring), (-self.ring, 0), (self.ring, 0), (-self.ring, -self.ring), (-self.ring, self.ring), (self.ring, -self.ring), (self.ring, self.ring))
             for new_position in adjacent_cells: # Adjacent cells
-                node_position = [center[0] + new_position[0]*2, center[1] + new_position[1]*2]
+                node_position = [center[0] + new_position[0], center[1] + new_position[1]]
                 print("node", node_position[0])
                 #is in range
                 if not (node_position[0] > (len(self.maze) - 1) or node_position[0] < 0 or node_position[1] > (len(self.maze[len(self.maze)-1]) -1) or node_position[1] < 0):
@@ -419,6 +420,36 @@ class MyRob(CRobLinkAngs):
         threshold = 1/minD              # threshold front sensor
         thresholdSides = 1/minDSides    # threshold side sensors
         # thresholdSidesMove = 1/minDSidesMove
+
+        # check back wall
+        if coord == self.startCELL:
+            if self.measures.irSensor[self.back_id] >= threshold:
+                if direction == 0:
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                    self.maze[coord[0]][coord[1]-1] = 1
+                    self.maze[coord[0]+1][coord[1]-1] = 1
+                elif direction == 90:
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                    self.maze[coord[0]-1][coord[1]] = 1
+                    self.maze[coord[0]-1][coord[1]+1] = 1
+                elif direction == -90:
+                    self.maze[coord[0]+1][coord[1]-1] = 1
+                    self.maze[coord[0]+1][coord[1]] = 1
+                    self.maze[coord[0]+1][coord[1]+1] = 1
+                elif direction == 180:
+                    self.maze[coord[0]-1][coord[1]+1] = 1
+                    self.maze[coord[0]][coord[1]+1] = 1
+                    self.maze[coord[0]+1][coord[1]+1] = 1
+            else:
+                if direction == 0:
+                    self.maze[coord[0]][coord[1]-1] = 0
+                elif direction == 90:
+                    self.maze[coord[0]-1][coord[1]] = 0
+                elif direction == -90:
+                    self.maze[coord[0]+1][coord[1]] = 0
+                elif direction == 180:
+                    self.maze[coord[0]][coord[1]+1] = 0
+
         # check for walls
         if self.measures.irSensor[self.left_id] >= thresholdSides:           # left wall     CASE: LEFT
             print("ADDED LEFT WALL -> ", coord)
