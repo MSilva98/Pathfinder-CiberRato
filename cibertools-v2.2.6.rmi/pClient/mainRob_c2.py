@@ -161,20 +161,20 @@ class MyRob(CRobLinkAngs):
 
             if self.measures.irSensor[self.center_id] > 2:
                 self.driveMotors(0.0,0.0)
-                print("STOPPPPPP")
+                print("STOPPPPPP", self.measures.irSensor)
                 move = False
 
             if(direction == 0):
-                if(currentPos[0] > gpsDest[0] ):
+                if(currentPos[0] > gpsDest[0] -0.1):
                     move  = False
             elif(direction == 180):
-                if(currentPos[0] < gpsDest[0] ):
+                if(currentPos[0] < gpsDest[0] + 0.1):
                     move  = False
             elif(direction == 90):
-                if(currentPos[1] > gpsDest[1] ):
+                if(currentPos[1] > gpsDest[1] - 0.1):
                     move  = False
             elif(direction == -90):
-                if(currentPos[1] < gpsDest[1] ):
+                if(currentPos[1] < gpsDest[1] + 0.1):
                     move  = False          
 
 
@@ -189,7 +189,7 @@ class MyRob(CRobLinkAngs):
         currentPos = [self.measures.x, self.measures.y]
         gpsPos = self.cellToGPSPoint(pos)
 
-        # print(posInit, gpsPos, pos)
+        print(posInit, gpsPos, pos)
 
         if(direction == 0):
             gpsDest = [gpsPos[0]+2 , gpsPos[1]]
@@ -217,19 +217,19 @@ class MyRob(CRobLinkAngs):
 
             if(direction == 0):
                 posDest = [pos[0], pos[1]+2]
-                if(currentPos[0] > gpsDest[0] - 1.1):
+                if(currentPos[0] > gpsDest[0] - 0.1):
                     move  = False
             elif(direction == 180):
                 posDest = [pos[0], pos[1]-2]
-                if(currentPos[0] < gpsDest[0] + 1.1):
+                if(currentPos[0] < gpsDest[0] + 0.1):
                     move  = False
             elif(direction == 90):
                 posDest = [ pos[0]+2, pos[1]]
-                if(currentPos[1] > gpsDest[1] - 1.1):
+                if(currentPos[1] > gpsDest[1] - 0.1):
                     move  = False
             elif(direction == -90):
                 posDest = [ pos[0]-2, pos[1]]
-                if(currentPos[1] < gpsDest[1] + 1.1):
+                if(currentPos[1] < gpsDest[1] + 0.1):
                     move  = False          
 
         if(direction == 0):
@@ -375,14 +375,14 @@ class MyRob(CRobLinkAngs):
                     self.driveMotors(+0.03,-0.03)
                     self.readSensors()
         elif(ang == -90):
-            if abs(self.measures.compass) > 90: 
-                while abs(self.measures.compass) > 90:    
+            if self.measures.compass > 45 or self.measures.compass < -90: 
+                while self.measures.compass > 45 or self.measures.compass < -90:    
                     self.driveMotors(-0.03,+0.03)
                     self.readSensors()
                 # if self.measures.compass != -90:
                 #     self.rotate(-90)
             else:
-                while abs(self.measures.compass) < 90:    
+                while self.measures.compass  < 45 and self.measures.compass > -90:    
                     self.driveMotors(+0.03,-0.03)
                     self.readSensors()
                 # if self.measures.compass != -90:
@@ -418,12 +418,12 @@ class MyRob(CRobLinkAngs):
         print("coord:", coord)
         #self.checkWalls(direction, coord)
 
+        self.checkWalls(direction, coord)
         while True:    
             self.readSensors()
             
             print(self.measures.irSensor)
 
-            self.checkWalls(direction, coord)
 
             # print(self.maze[coord[0]-4])
             # print(self.maze[coord[0]-3])
@@ -478,9 +478,13 @@ class MyRob(CRobLinkAngs):
 
                 #coord = self.moveFrontOne(direction, coord)
                 prevCoord = coord
+                print("START FIRST HALF")
                 coord = self.moveFirstHalf(direction, coord)
+                print("FINISH FIRST HALF")
                 self.checkWallsSide(direction, coord)
+                print("START SECOND HALF", prevCoord, coord)
                 self.moveSecondHalf(direction, prevCoord)
+                print("FINISH SECOND HALF")
                 self.checkWallsFront(direction, coord)
                 #Assign 0 to all visited cells except target and start
                 if coord != self.startCELL:  
@@ -534,9 +538,11 @@ class MyRob(CRobLinkAngs):
 
 
     def checkWallsSide(self, direction, coord):
+        self.readSensors()
         # Minimum distance at which we assume a wall exists
         minD = 0.7
-        minDSides = 0.59
+        #minDSides = 0.59
+        minDSides = 0.625
         # minDSidesMove = 0.6
         # min60 = (minD+0.5)/math.sin(math.radians(60))-0.5
         # print("coord (checkWals): ", coord)
@@ -606,6 +612,7 @@ class MyRob(CRobLinkAngs):
 
 
     def checkWallsFront(self, direction, coord):
+        self.readSensors()
         # Minimum distance at which we assume a wall exists
         minD = 0.7
         minDSides = 0.59
@@ -642,6 +649,7 @@ class MyRob(CRobLinkAngs):
 
 
     def checkWalls(self, direction, coord):
+        self.readSensors()
         # Minimum distance at which we assume a wall exists
         minD = 0.7
         minDSides = 0.59
