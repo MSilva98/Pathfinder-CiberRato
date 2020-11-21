@@ -157,11 +157,11 @@ class MyRob(CRobLinkAngs):
 
             currentPos = [self.measures.x, self.measures.y]
 
-            print(self.measures.irSensor)
+            # print(self.measures.irSensor)
 
             if self.measures.irSensor[self.center_id] > 2:
                 self.driveMotors(0.0,0.0)
-                print("STOPPPPPP", self.measures.irSensor)
+                print("STOPPPPPP First HALF ", self.measures.irSensor)
                 move = False
 
             if(direction == 0):
@@ -177,8 +177,6 @@ class MyRob(CRobLinkAngs):
                 if(currentPos[1] < gpsDest[1] + 0.1):
                     move  = False          
 
-
-
         self.driveMotors(0.00,-0.00) 
         return posDest
 
@@ -189,7 +187,7 @@ class MyRob(CRobLinkAngs):
         currentPos = [self.measures.x, self.measures.y]
         gpsPos = self.cellToGPSPoint(pos)
 
-        print(posInit, gpsPos, pos)
+        # print(posInit, gpsPos, pos)
 
         if(direction == 0):
             gpsDest = [gpsPos[0]+2 , gpsPos[1]]
@@ -208,11 +206,11 @@ class MyRob(CRobLinkAngs):
 
             currentPos = [self.measures.x, self.measures.y]
 
-            print(self.measures.irSensor)
+            # print(self.measures.irSensor)
 
             if self.measures.irSensor[self.center_id] > 2:
                 self.driveMotors(0.0,0.0)
-                print("STOPPPPPP")
+                print("STOPPPPPP Second HALF ", self.measures.irSensor)
                 move = False
 
             if(direction == 0):
@@ -274,11 +272,11 @@ class MyRob(CRobLinkAngs):
 
             currentPos = [self.measures.x, self.measures.y]
 
-            print(self.measures.irSensor)
+            # print(self.measures.irSensor)
 
             if self.measures.irSensor[self.center_id] > 2:
                 self.driveMotors(0.0,0.0)
-                print("STOPPPPPP")
+                print("STOPPPPPP FRONT ONE ", self.measures.irSensor)
                 move = False
 
             if(direction == 0):
@@ -400,7 +398,6 @@ class MyRob(CRobLinkAngs):
                     self.readSensors()
                 # if self.measures.compass != 0:
                 #     self.rotate(0)
-
         self.driveMotors(0.00,-0.00)
 
     def exploreMap(self): 
@@ -416,13 +413,13 @@ class MyRob(CRobLinkAngs):
         direction = 0
 
         print("coord:", coord)
-        #self.checkWalls(direction, coord)
-
+        
         self.checkWalls(direction, coord)
+
         while True:    
             self.readSensors()
             
-            print(self.measures.irSensor)
+            # print(self.measures.irSensor)
 
 
             # print(self.maze[coord[0]-4])
@@ -435,11 +432,11 @@ class MyRob(CRobLinkAngs):
             # print(self.maze[coord[0]+3])
             # print(self.maze[coord[0]+4])
             self.ring = 2
-            unknownCell = self.getunknownCell(coord)
+            unknownCell = self.getunknownCell(coord, direction)
 
             #unknownCell = (18,44)
-            print("coord:", coord)
-            print("unknownCell: ", unknownCell)
+            print("current cell: ", coord)
+            print("unknown cell: ", unknownCell)
             
             #path = astar2(self.maze, coord, (self.startCELL[0] + 10, self.startCELL[1]))
             path = astar2(self.maze, coord, unknownCell)
@@ -450,6 +447,7 @@ class MyRob(CRobLinkAngs):
 
             #FOLLOW PATH
             print("PATH: ", path)
+            
             while len(path)> 1:
                 current = path.pop(0)
                 currentPos = [current[1], current[0]] 
@@ -457,7 +455,7 @@ class MyRob(CRobLinkAngs):
                 
                 #self.checkWalls(direction, coord)
                 
-                print("coord:", coord)
+                # print("coord:", coord)
                 print("dirToMove", dirToMove)
                 
                 if(dirToMove[0] > 0 and self.maze[coord[0]][coord[1]+1] != 1):
@@ -486,6 +484,7 @@ class MyRob(CRobLinkAngs):
                 self.moveSecondHalf(direction, prevCoord)
                 print("FINISH SECOND HALF")
                 self.checkWallsFront(direction, coord)
+
                 #Assign 0 to all visited cells except target and start
                 if coord != self.startCELL:  
                     self.maze[coord[0]][coord[1]] = 0
@@ -519,9 +518,9 @@ class MyRob(CRobLinkAngs):
                     return (x,y)
         return -1
 
-    def getunknownCell(self, center):
+    def getunknownCell(self, center, direction):
+        adjacent_cells = self.getRing(direction)
         while True:
-            adjacent_cells = ((0, -self.ring), (0, self.ring), (-self.ring, 0), (self.ring, 0), (-self.ring, -self.ring), (-self.ring, self.ring), (self.ring, -self.ring), (self.ring, self.ring))
             for new_position in adjacent_cells: # Adjacent cells
                 node_position = [center[0] + new_position[0], center[1] + new_position[1]]
                 print("node", node_position[0])
@@ -536,42 +535,54 @@ class MyRob(CRobLinkAngs):
                 break
         return -1
 
+    def getRing(self, direction):
+        if direction == 0:
+            return ((0, self.ring), (-self.ring, 0), (self.ring, 0), (self.ring, self.ring), (-self.ring, self.ring), (-self.ring, -self.ring), (self.ring, -self.ring), (0, -self.ring))
+        elif direction == 180:
+            return ((0, -self.ring), (-self.ring, 0), (self.ring, 0), (self.ring, -self.ring), (-self.ring, -self.ring), (-self.ring, self.ring), (self.ring, self.ring), (0, self.ring))
+        elif direction == 90:
+            return ((self.ring, 0), (0, self.ring), (0, -self.ring), (self.ring, self.ring), (self.ring, -self.ring), (-self.ring, 0), (-self.ring, self.ring), (-self.ring, -self.ring))
+        elif direction == -90:
+            return ((-self.ring, 0), (0, self.ring), (0, -self.ring), (-self.ring, self.ring), (-self.ring, -self.ring), (self.ring, 0), (self.ring, self.ring), (self.ring, -self.ring))
 
     def checkWallsSide(self, direction, coord):
         self.readSensors()
         # Minimum distance at which we assume a wall exists
-        minD = 0.7
         #minDSides = 0.59
         minDSides = 0.625
-        # minDSidesMove = 0.6
-        # min60 = (minD+0.5)/math.sin(math.radians(60))-0.5
-        # print("coord (checkWals): ", coord)
-        #print(maze)
-        #mazeReturn = maze.copy()
+        
         # Sensor value to detect wall
-        threshold = 1/minD              # threshold front sensor
         thresholdSides = 1/minDSides    # threshold side sensors
-        # thresholdSidesMove = 1/minDSidesMove
+        
+        print(self.measures.irSensor)
 
         # check for walls
         if self.measures.irSensor[self.left_id] >= thresholdSides:           # left wall     CASE: LEFT
             print("ADDED LEFT WALL -> ", coord)
             if direction == 0:
-                self.maze[coord[0]+1][coord[1]-1] = 1
                 self.maze[coord[0]+1][coord[1]] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == 90:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]][coord[1]-1] = 1
-                self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
             elif direction == -90:
-                self.maze[coord[0]-1][coord[1]+1] = 1
                 self.maze[coord[0]][coord[1]+1] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == 180:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]-1][coord[1]] = 1
-                self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]-1][coord[1]+1] = 1
         else:
             if direction == 0:
                 self.maze[coord[0]+1][coord[1]] = 0
@@ -585,21 +596,29 @@ class MyRob(CRobLinkAngs):
         if self.measures.irSensor[self.right_id] >= thresholdSides:          # right wall    CASE: RIGHT
             print("ADDED RIGHT WALL -> ", coord)
             if direction == 0:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]-1][coord[1]] = 1
-                self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] > 0:
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1:
+                    self.maze[coord[0]-1][coord[1]+1] = 1
             elif direction == 90:
-                self.maze[coord[0]-1][coord[1]+1] = 1
                 self.maze[coord[0]][coord[1]+1] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1:
+                    self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == -90:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]][coord[1]-1] = 1
-                self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
             elif direction == 180:
-                self.maze[coord[0]+1][coord[1]-1] = 1
                 self.maze[coord[0]+1][coord[1]] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
         else:
             if direction == 0:
                 self.maze[coord[0]-1][coord[1]] = 0
@@ -615,36 +634,39 @@ class MyRob(CRobLinkAngs):
         self.readSensors()
         # Minimum distance at which we assume a wall exists
         minD = 0.7
-        minDSides = 0.59
-        # minDSidesMove = 0.6
-        # min60 = (minD+0.5)/math.sin(math.radians(60))-0.5
-        # print("coord (checkWals): ", coord)
-        #print(maze)
-        #mazeReturn = maze.copy()
+
         # Sensor value to detect wall
         threshold = 1/minD              # threshold front sensor
-        thresholdSides = 1/minDSides    # threshold side sensors
-        # thresholdSidesMove = 1/minDSidesMove
+        
+        print(self.measures.irSensor)
 
         if self.measures.irSensor[self.center_id] >= threshold:           # front wall
             self.driveMotors(0.0,0.0)
             print("ADDED FRONT WALL-> ", coord) 
             if direction == 0:
-                self.maze[coord[0]-1][coord[1]+1] = 1
                 self.maze[coord[0]][coord[1]+1] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == 90:
-                self.maze[coord[0]+1][coord[1]-1] = 1
                 self.maze[coord[0]+1][coord[1]] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == -90:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]-1][coord[1]] = 1
-                self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]-1][coord[1]+1] = 1
             elif direction == 180:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]][coord[1]-1] = 1
-                self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
 
 
 
@@ -667,21 +689,29 @@ class MyRob(CRobLinkAngs):
         if coord == self.startCELL:
             if self.measures.irSensor[self.back_id] >= threshold:
                 if direction == 0:
-                    self.maze[coord[0]-1][coord[1]-1] = 1
-                    self.maze[coord[0]][coord[1]-1] = 1
-                    self.maze[coord[0]+1][coord[1]-1] = 1
+                    self.maze[coord[0]][coord[1]-1] = 1 
+                    if coord[0] > 0 and coord[1] > 0: 
+                        self.maze[coord[0]-1][coord[1]-1] = 1
+                    if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                        self.maze[coord[0]+1][coord[1]-1] = 1
                 elif direction == 90:
-                    self.maze[coord[0]-1][coord[1]-1] = 1
                     self.maze[coord[0]-1][coord[1]] = 1
-                    self.maze[coord[0]-1][coord[1]+1] = 1
+                    if coord[0] > 0 and coord[1] > 0: 
+                        self.maze[coord[0]-1][coord[1]-1] = 1
+                    if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                        self.maze[coord[0]-1][coord[1]+1] = 1
                 elif direction == -90:
-                    self.maze[coord[0]+1][coord[1]-1] = 1
                     self.maze[coord[0]+1][coord[1]] = 1
-                    self.maze[coord[0]+1][coord[1]+1] = 1
+                    if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                        self.maze[coord[0]+1][coord[1]-1] = 1
+                    if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                        self.maze[coord[0]+1][coord[1]+1] = 1
                 elif direction == 180:
-                    self.maze[coord[0]-1][coord[1]+1] = 1
                     self.maze[coord[0]][coord[1]+1] = 1
-                    self.maze[coord[0]+1][coord[1]+1] = 1
+                    if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                        self.maze[coord[0]-1][coord[1]+1] = 1
+                    if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                        self.maze[coord[0]+1][coord[1]+1] = 1
             else:
                 if direction == 0:
                     self.maze[coord[0]][coord[1]-1] = 0
@@ -696,21 +726,29 @@ class MyRob(CRobLinkAngs):
         if self.measures.irSensor[self.left_id] >= thresholdSides:           # left wall     CASE: LEFT
             print("ADDED LEFT WALL -> ", coord)
             if direction == 0:
-                self.maze[coord[0]+1][coord[1]-1] = 1
                 self.maze[coord[0]+1][coord[1]] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == 90:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]][coord[1]-1] = 1
-                self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
             elif direction == -90:
-                self.maze[coord[0]-1][coord[1]+1] = 1
                 self.maze[coord[0]][coord[1]+1] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == 180:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]-1][coord[1]] = 1
-                self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]-1][coord[1]+1] = 1
         else:
             if direction == 0:
                 self.maze[coord[0]+1][coord[1]] = 0
@@ -724,21 +762,29 @@ class MyRob(CRobLinkAngs):
         if self.measures.irSensor[self.right_id] >= thresholdSides:          # right wall    CASE: RIGHT
             print("ADDED RIGHT WALL -> ", coord)
             if direction == 0:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]-1][coord[1]] = 1
-                self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] > 0:
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1:
+                    self.maze[coord[0]-1][coord[1]+1] = 1
             elif direction == 90:
-                self.maze[coord[0]-1][coord[1]+1] = 1
                 self.maze[coord[0]][coord[1]+1] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1:
+                    self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == -90:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]][coord[1]-1] = 1
-                self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
             elif direction == 180:
-                self.maze[coord[0]+1][coord[1]-1] = 1
                 self.maze[coord[0]+1][coord[1]] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
         else:
             if direction == 0:
                 self.maze[coord[0]-1][coord[1]] = 0
@@ -753,21 +799,29 @@ class MyRob(CRobLinkAngs):
             self.driveMotors(0.0,0.0)
             print("ADDED FRONT WALL-> ", coord) 
             if direction == 0:
-                self.maze[coord[0]-1][coord[1]+1] = 1
                 self.maze[coord[0]][coord[1]+1] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == 90:
-                self.maze[coord[0]+1][coord[1]-1] = 1
                 self.maze[coord[0]+1][coord[1]] = 1
-                self.maze[coord[0]+1][coord[1]+1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]+1][coord[1]+1] = 1
             elif direction == -90:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]-1][coord[1]] = 1
-                self.maze[coord[0]-1][coord[1]+1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] < len(self.maze[0])-1: 
+                    self.maze[coord[0]-1][coord[1]+1] = 1
             elif direction == 180:
-                self.maze[coord[0]-1][coord[1]-1] = 1
                 self.maze[coord[0]][coord[1]-1] = 1
-                self.maze[coord[0]+1][coord[1]-1] = 1
+                if coord[0] > 0 and coord[1] > 0: 
+                    self.maze[coord[0]-1][coord[1]-1] = 1
+                if coord[0] < len(self.maze)-1 and coord[1] > 0: 
+                    self.maze[coord[0]+1][coord[1]-1] = 1
         #return mazeReturn
 
     def rotateBack(self, direction):
