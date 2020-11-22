@@ -2,11 +2,8 @@ import sys
 from croblink import *
 import math
 import xml.etree.ElementTree as ET
-
 import numpy as np
-
 from astar import *
-
 from astar2 import *
 
 CELLROWS=7
@@ -68,6 +65,9 @@ class MyRob(CRobLinkAngs):
                     elif challenge == '2':
                         print("Challenge 2")
                         self.exploreMap()
+                    elif challenge == '3':
+                        print("Challenge 3")
+                        self.exploreMapNOGPS()
 
             elif state == 'wait':
                 self.setReturningLed(True)
@@ -79,7 +79,7 @@ class MyRob(CRobLinkAngs):
             elif state == 'return':
                 if challenge == '1':
                     pathR = astar(maze, end, start)
-                elif challenge == '2':
+                elif challenge == '2' or challenge == '3':
                     self.getStartEnd(self.maze)
                     
                     for p in self.maze:
@@ -98,7 +98,11 @@ class MyRob(CRobLinkAngs):
                 if challenge == '1':
                     self.followPath(pathR)
                 elif challenge == '2':
-                    self.followPath(pathR, False)
+                    self.followPath(pathR)
+                    print(savedPath)
+                    self.saveMap(savedPath)
+                elif challenge == '3':
+                    self.followPathNOGPS(pathR)
                     print(savedPath)
                     self.saveMap(savedPath)
                 self.finish()
@@ -107,7 +111,7 @@ class MyRob(CRobLinkAngs):
         # print("cell: ", cell, " startCell: ", self.startCELL)
         return [self.startPosition[0] + cell[1] - self.startCELL[1] , self.startPosition[1] + cell[0] - self.startCELL[0]]
 
-    def followPath(self, path, double=True):
+    def followPath(self, path):
         print(path)
         while len(path) > 1:
             current = path.pop(0)
@@ -116,19 +120,56 @@ class MyRob(CRobLinkAngs):
             print("Move: ", dirToMove)
             if(dirToMove[0] > 0):
                 self.rotate(0)
-                self.moveFrontOne(0, current, double)
+                self.moveFrontOne(0, current)
             elif(dirToMove[0] < 0):
                 self.rotate(180)
-                self.moveFrontOne(180, current, double)
+                self.moveFrontOne(180, current)
             if(dirToMove[1] > 0):
                 self.rotate(90)
-                self.moveFrontOne(90, current, double)
+                self.moveFrontOne(90, current)
             elif(dirToMove[1] < 0):
                 self.rotate(-90)
-                self.moveFrontOne(-90, current, double)
+                self.moveFrontOne(-90, current)
+            self.driveMotors(0.0,0.0)
+
+    def followPathNOGPS(self, path):
+        print(path)
+        while len(path) > 1:
+            current = path.pop(0)
+            currentPos = [current[1], current[0]]
+            dirToMove = (path[0][1]-currentPos[0], path[0][0] - currentPos[1])
+            print("Move: ", dirToMove)
+            if(dirToMove[0] > 0):
+                self.rotate(0)
+                self.moveFrontOneNOGPS(0)
+            elif(dirToMove[0] < 0):
+                self.rotate(180)
+                self.moveFrontOneNOGPS(180)
+            if(dirToMove[1] > 0):
+                self.rotate(90)
+                self.moveFrontOneNOGPS(90)
+            elif(dirToMove[1] < 0):
+                self.rotate(-90)
+                self.moveFrontOneNOGPS(-90)
             self.driveMotors(0.0,0.0)
             
-    def moveFirstHalf(self, direction, pos, double=True):
+    def moveFrontOneNOGPS(self, direction):
+        print("MOVE TO " + str(direction))
+        prevTime = self.measures.time
+        while self.measures.time - prevTime < 20:
+            # print(prevTime, self.measures.time)
+            err = self.errorCorrectionSensors(direction)
+            self.driveMotors(0.1 - err , 0.1 + err)
+            self.readSensors()
+
+            if self.measures.irSensor[self.center_id] > 2:
+                self.driveMotors(0.0,0.0)
+                print("STOPPPPPP FRONT ONE NO GPS ", self.measures.irSensor)
+            
+        print("CHEGOU A CELULA")
+        self.driveMotors(0.00,-0.00)
+
+    def moveFirstHalf(self, direction, pos):
         # print("MOVE FRONT")
         posInit = [self.measures.x, self.measures.y]
         currentPos = [self.measures.x, self.measures.y]
@@ -181,7 +222,7 @@ class MyRob(CRobLinkAngs):
         return posDest
 
 
-    def moveSecondHalf(self, direction, pos, double=True):
+    def moveSecondHalf(self, direction, pos):
         # print("MOVE FRONT")
         posInit = [self.measures.x, self.measures.y]
         currentPos = [self.measures.x, self.measures.y]
@@ -243,11 +284,39 @@ class MyRob(CRobLinkAngs):
             if(gpsDest[1] - currentPos[1] > 1.5):
                 posDest = [pos[0]-2, pos[1]]	
 
+        self.driveMotors(0.00,-0.00) 
+        return posDest
+
+    def moveHalfTimed(self, direction, pos):
+        if(direction == 0):
+            posDest = [pos[0], pos[1]+2]
+        elif(direction == 180):
+            posDest = [pos[0], pos[1]-2]
+        elif(direction == 90):
+            posDest = [pos[0]+2, pos[1]]
+        elif(direction == -90):
+            posDest = [pos[0]-2, pos[1]]
+
+        prevTime = self.measures.time        
+        while self.measures.time - prevTime < 10:
+            # print(prevTime, self.measures.time)
+            err = self.errorCorrectionSensors(direction)
+            self.driveMotors(0.1 - err , 0.1 + err)
+            self.readSensors()
+
+            if self.measures.irSensor[self.center_id] > 2:
+                self.driveMotors(0.0,0.0)
+                print("STOPPPPPP HALF ", self.measures.irSensor, direction)
+                print(prevTime, self.measures.time)
+                if self.measures.time - prevTime < 3:
+                    return pos
+                else:
+                    return posDest
 
         self.driveMotors(0.00,-0.00) 
         return posDest
 
-    def moveFrontOne(self, direction, pos, double=True):
+    def moveFrontOne(self, direction, pos):
         # print("MOVE FRONT")
         posInit = [self.measures.x, self.measures.y]
         currentPos = [self.measures.x, self.measures.y]
@@ -313,19 +382,6 @@ class MyRob(CRobLinkAngs):
         self.driveMotors(0.00,-0.00) 
         return posDest
 
-        # dif = (round(currentPos[0]-posInit[0]), round(currentPos[1]-posInit[1]))
-        # print(dif)
-        # if dif == (2,0):
-        #     return [pos[1], pos[0]+2]
-        # elif dif == (-2.0):
-        #     return [pos[1], pos[0]-2]
-        # elif dif == (0,2):
-        #     return [pos[1]+2, pos[0]]
-        # elif dif == (0,-2):
-        #     return [pos[1]-2, pos[0]]
-        # else:
-        #     return [pos[1], pos[0]]
-
     def errorCorrection(self, direction, pos):
         errorDir = direction - self.measures.compass  # directional error
         if(self.measures.compass < 0 and direction == 180):
@@ -343,6 +399,19 @@ class MyRob(CRobLinkAngs):
         #     quit()
         return errorDir*0.01 + errorGeo*0.5
 
+    def errorCorrectionSensors(self, direction):
+        errorDir = direction - self.measures.compass  # directional error
+        if(self.measures.compass < 0 and direction == 180):
+            errorDir =  - (direction - abs(self.measures.compass))  # directional error
+        errorGeo = 0
+        if self.measures.irSensor[self.left_id] > 2.1:
+            errorGeo =  2.1 - self.measures.irSensor[self.left_id]
+            # print("CORRECT CLOSE TO WALL LEFT")
+        elif self.measures.irSensor[self.right_id] > 2.1:
+            errorGeo = self.measures.irSensor[self.right_id] - 2.1
+            # print("CORRECT CLOSE TO WALL RIGHT")
+        return errorDir*0.01 + errorGeo*0.1
+
     def angConverter(self, ang):
         if(ang < 0):
             return (360 - ang)
@@ -355,14 +424,10 @@ class MyRob(CRobLinkAngs):
                 while abs(self.measures.compass) > 90:
                     self.driveMotors(+0.03,-0.03)
                     self.readSensors()
-                # if self.measures.compass != 90:
-                #     self.rotate(90)
             else:
                 while self.measures.compass < 90:
                     self.driveMotors(-0.03,+0.03)
                     self.readSensors()
-                # if self.measures.compass != 90:
-                #     self.rotate(90)
         elif(ang == 180):
             if self.measures.compass > 0:
                 while self.measures.compass < 178 and self.measures.compass >= 0:
@@ -377,28 +442,107 @@ class MyRob(CRobLinkAngs):
                 while self.measures.compass > 45 or self.measures.compass < -90:    
                     self.driveMotors(-0.03,+0.03)
                     self.readSensors()
-                # if self.measures.compass != -90:
-                #     self.rotate(-90)
             else:
                 while self.measures.compass  < 45 and self.measures.compass > -90:    
                     self.driveMotors(+0.03,-0.03)
                     self.readSensors()
-                # if self.measures.compass != -90:
-                #     self.rotate(-90)
         elif(ang == 0):
             if self.measures.compass < 0:
                 while self.measures.compass < 0:
                     self.driveMotors(-0.03,+0.03)
                     self.readSensors()
-                # if self.measures.compass != 0:
-                #     self.rotate(0)
             else: 
                 while self.measures.compass > 0:
                     self.driveMotors(+0.03,-0.03)
                     self.readSensors()
-                # if self.measures.compass != 0:
-                #     self.rotate(0)
         self.driveMotors(0.00,-0.00)
+
+
+    def exploreMapNOGPS(self):
+        self.maze = [[8] * (CELLCOLS*4) for i in range(CELLROWS*4)]
+        self.startCELL = (round((len(self.maze)-1)/2),round((len(self.maze[0])-1)/2))
+        # start location
+        self.maze[self.startCELL[0]][self.startCELL[1]] = 5
+
+        coord = self.startCELL
+        direction = 0
+        print("coord:", coord)
+        
+        self.checkWalls(direction, coord)
+
+        while True:    
+            self.readSensors()
+            
+            self.ring = 2
+            unknownCell = self.getunknownCell(coord, direction)
+
+            print("current cell: ", coord)
+            print("unknown cell: ", unknownCell)
+            
+            path = astar2(self.maze, coord, unknownCell)
+            if path == None:
+                print("NO PATH")
+                for p in self.maze:
+                    print(p)
+                self.maze[unknownCell[0]][unknownCell[1]] = 0
+                continue
+
+            #FOLLOW PATH
+            print("PATH: ", path)
+            
+            while len(path)> 1:
+                current = path.pop(0)
+                currentPos = [current[1], current[0]] 
+                dirToMove = (( path[0][1]) - currentPos[0], (path[0][0] - currentPos[1] ))
+                                
+                print("dirToMove", dirToMove)
+                
+                if(dirToMove[0] > 0 and self.maze[coord[0]][coord[1]+1] != 1):
+                    self.rotate(0)
+                    direction = 0
+                elif(dirToMove[0] < 0 and self.maze[coord[0]][coord[1]-1] != 1):
+                    self.rotate(180)
+                    direction = 180
+                elif(dirToMove[1] > 0 and self.maze[coord[0] +1][coord[1]] != 1):
+                    self.rotate(90)
+                    direction = 90
+                elif(dirToMove[1] < 0 and self.maze[coord[0] -1][coord[1]] != 1):
+                    self.rotate(-90)
+                    direction = -90
+                else:
+                    print("BREAK")
+                    break
+
+                prevCoord = coord
+                print("START FIRST HALF")
+                coord = self.moveHalfTimed(direction, coord)
+                print("FINISH FIRST HALF")
+                self.checkWallsSide(direction, coord)
+                print("START SECOND HALF", prevCoord, coord)
+                self.moveHalfTimed(direction, prevCoord)
+                print("FINISH SECOND HALF")
+                self.checkWallsFront(direction, coord)
+
+                #Assign 0 to all visited cells except target and start
+                if coord != self.startCELL:  
+                    self.maze[coord[0]][coord[1]] = 0
+                    
+                    if direction == 0 and (coord[0],coord[1]-1) != self.startCELL:
+                        self.maze[coord[0]][coord[1]-1] = 0
+                    elif direction == 180 and (coord[0],coord[1]+1) != self.startCELL:
+                        self.maze[coord[0]][coord[1]+1] = 0
+                    elif direction == 90 and (coord[0]-1,coord[1]) != self.startCELL:
+                        self.maze[coord[0]-1][coord[1]] = 0
+                    elif direction == -90  and (coord[0]+1,coord[1]) != self.startCELL:
+                        self.maze[coord[0]+1][coord[1]] = 0
+
+                self.driveMotors(0.00,-0.00)
+
+            # check for target
+            if self.measures.ground == 0:
+                # Assign 2 to goal   
+                self.maze[coord[0]][coord[1]] = 2  
+                return
 
     def exploreMap(self): 
         self.maze = [[8] * (CELLCOLS*4-1) for i in range(CELLROWS*4-1)]
@@ -489,13 +633,13 @@ class MyRob(CRobLinkAngs):
                 if coord != self.startCELL:  
                     self.maze[coord[0]][coord[1]] = 0
                     
-                    if direction == 0 and (coord[0],coord[1]-1) != self.startCELL:
+                    if direction == 0:
                         self.maze[coord[0]][coord[1]-1] = 0
-                    elif direction == 180 and (coord[0],coord[1]+1) != self.startCELL:
+                    elif direction == 180:
                         self.maze[coord[0]][coord[1]+1] = 0
-                    elif direction == 90 and (coord[0]-1,coord[1]) != self.startCELL:
+                    elif direction == 90:
                         self.maze[coord[0]-1][coord[1]] = 0
-                    elif direction == -90  and (coord[0]+1,coord[1]) != self.startCELL:
+                    else:
                         self.maze[coord[0]+1][coord[1]] = 0
 
                 self.driveMotors(0.00,-0.00)
@@ -548,6 +692,7 @@ class MyRob(CRobLinkAngs):
     def checkWallsSide(self, direction, coord):
         self.readSensors()
         # Minimum distance at which we assume a wall exists
+        #minDSides = 0.59
         minDSides = 0.625
         
         # Sensor value to detect wall
@@ -822,51 +967,6 @@ class MyRob(CRobLinkAngs):
                 if coord[0] < len(self.maze)-1 and coord[1] > 0: 
                     self.maze[coord[0]+1][coord[1]-1] = 1
         #return mazeReturn
-
-    def rotateBack(self, direction):
-        if direction == 0:
-            self.rotate(180)
-            direction = 180
-        elif direction == 90:
-            self.rotate(-90)
-            direction = -90
-        elif direction == -90:
-            self.rotate(90)
-            direction = 90
-        else:
-            self.rotate(0)
-            direction = 0
-        return direction   
-
-    def rotateLeft(self, direction):
-        if direction == 0:
-            self.rotate(90)
-            direction = 90
-        elif direction == 90:
-            self.rotate(180)
-            direction = 180
-        elif direction == 180:
-            self.rotate(-90)
-            direction = -90
-        else:
-            self.rotate(0)
-            direction = 0
-        return direction
-
-    def rotateRight(self, direction):
-        if direction == 0:
-            self.rotate(-90)
-            direction = -90
-        elif direction == 90:
-            self.rotate(0)
-            direction = 0
-        elif direction == 180:
-            self.rotate(90)
-            direction = 90
-        else:
-            self.rotate(180)
-            direction = 180
-        return direction
 
     def getStartEnd(self, maze):
         for x in range(len(maze)):

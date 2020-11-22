@@ -114,6 +114,7 @@ class MyRob(CRobLinkAngs):
         print("MOVE TO " + str(direction))
         prevTime = self.measures.time
         while self.measures.time - prevTime < 20:
+            print(prevTime, self.measures.time)
             #print(self.measures.irSensor[self.left_id], self.measures.irSensor[self.right_id] )
             err = self.errorCorrection(direction)
             self.driveMotors(0.1 - err , 0.1 + err)
