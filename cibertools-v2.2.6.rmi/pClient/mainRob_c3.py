@@ -169,6 +169,8 @@ class MyRob(CRobLinkAngs):
         print("CHEGOU A CELULA")
         self.driveMotors(0.00,-0.00)
 
+
+
     def moveFirstHalf(self, direction, pos):
         # print("MOVE FRONT")
         posInit = [self.measures.x, self.measures.y]
@@ -287,6 +289,21 @@ class MyRob(CRobLinkAngs):
         self.driveMotors(0.00,-0.00) 
         return posDest
 
+
+
+    def out_t(self, in_motors, prev_out):
+        noise = 1
+        return (in_motors * 0.5 + prev_out*0.5)* noise
+
+    def lin(self, out_left, out_right):
+        return (out_left + out_right )/ 2
+
+    def xt (self, xt_prev, ang, lin):
+        return xt_prev + lin*math.cos(math.radians(ang))
+    
+    def yt (self, yt_prev, ang, lin):
+        return yt_prev + lin*math.sin(math.radians(ang))
+
     def moveHalfTimed(self, direction, pos):
         if(direction == 0):
             posDest = [pos[0], pos[1]+2]
@@ -296,14 +313,34 @@ class MyRob(CRobLinkAngs):
             posDest = [pos[0]+2, pos[1]]
         elif(direction == -90):
             posDest = [pos[0]-2, pos[1]]
-
+        x_prev = 0
+        out_l = 0
+        out_r = 0
+        x = 0
+        prev_ang = 0
         prevTime = self.measures.time        
         while self.measures.time - prevTime < 10:
+        #while x < 0.45:
+            print("time:", self.measures.time - prevTime, " x: ", x)
             # print(prevTime, self.measures.time)
-            err = self.errorCorrectionSensors(direction)
-            self.driveMotors(0.1 - err , 0.1 + err)
-            self.readSensors()
 
+            #---- prev translation
+            prev_out_l = out_l
+            prev_out_r = out_r
+            x_prev = x
+            #prev_ang = abs(direction - self.measures.compass)
+            prev_ang = self.measures.compass
+            err = self.errorCorrectionSensors(direction)
+
+            self.driveMotors(0.1 - err , 0.1 + err)
+
+            #----translation
+            out_t_l = self.out_t(0.1 - err, prev_out_l)
+            out_t_r = self.out_t(0.1 + err, prev_out_r)
+            lin = self.lin(out_t_l, out_t_r)
+            x = self.xt(x_prev, prev_ang,lin )
+
+            self.readSensors()
             if self.measures.irSensor[self.center_id] > 2:
                 self.driveMotors(0.0,0.0)
                 print("STOPPPPPP HALF ", self.measures.irSensor, direction)
