@@ -409,19 +409,19 @@ class MyRob(CRobLinkAngs):
                 move = False
 
             if(direction == 0):
-                posDest = [pos[0], pos[1]+dist]
+                posDest = [pos[0], pos[1]+2]
                 if(currentPos[0] > gpsDest[0] - 0.1):
                     move  = False
             elif(direction == 180):
-                posDest = [pos[0], pos[1]-dist]
+                posDest = [pos[0], pos[1]-2]
                 if(currentPos[0] < gpsDest[0] + 0.1):
                     move  = False
             elif(direction == 90):
-                posDest = [pos[0]+dist, pos[1]]
+                posDest = [pos[0]+2, pos[1]]
                 if(currentPos[1] > gpsDest[1] - 0.1):
                     move  = False
             elif(direction == -90):
-                posDest = [pos[0]-dist, pos[1]]
+                posDest = [pos[0]-2, pos[1]]
                 if(currentPos[1] < gpsDest[1] + 0.1):
                     move  = False          
 
