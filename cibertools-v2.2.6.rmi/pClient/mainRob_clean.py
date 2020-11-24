@@ -183,23 +183,21 @@ class MyRob(CRobLinkAngs):
             posDest = [pos[0]+2, pos[1]]
         elif(direction == -90):
             posDest = [pos[0]-2, pos[1]]
-        
-        x_prev = 0
+        translation_prev = 0
         out_l = 0
         out_r = 0
-        x = 0
+        translation = 0
         prev_ang = 0
         prevTime = self.measures.time        
-        
-        while self.measures.time - prevTime < 10:
-        #while x < 0.45:
-            print("time:", self.measures.time - prevTime, " x: ", x)
+        #while self.measures.time - prevTime < 10:
+        while abs(translation) < 0.99:
+            print("time:", self.measures.time - prevTime, " x: ", translation)
             # print(prevTime, self.measures.time)
 
             #---- prev translation
             prev_out_l = out_l
             prev_out_r = out_r
-            x_prev = x
+            translation_prev = translation
             #prev_ang = abs(direction - self.measures.compass)
             prev_ang = self.measures.compass
             err = self.errorCorrectionSensors(direction)
@@ -210,7 +208,10 @@ class MyRob(CRobLinkAngs):
             out_t_l = self.out_t(0.1 - err, prev_out_l)
             out_t_r = self.out_t(0.1 + err, prev_out_r)
             lin = self.lin(out_t_l, out_t_r)
-            x = self.xt(x_prev, prev_ang,lin )
+            if(direction == 0 or direction == 180):
+                translation = self.xt(translation_prev, prev_ang,lin )
+            else:
+                translation = self.yt(translation_prev, prev_ang,lin )
 
             self.readSensors()
             if self.measures.irSensor[self.center_id] > 1.9:
@@ -568,7 +569,7 @@ class MyRob(CRobLinkAngs):
     def checkWallsFront(self, direction, coord):
         self.readSensors()
         # Minimum distance at which we assume a wall exists
-        minD = 0.7
+        minD = 0.6
 
         # Sensor value to detect wall
         threshold = 1/minD              # threshold front sensor
