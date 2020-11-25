@@ -468,9 +468,8 @@ class MyRob(CRobLinkAngs):
         # centerCells = (round((len(cells)-1)/2),round((len(cells[0])-1)/2))
         # print(centerCells, center)
         vecs = self.neighbors(self.ring, center[0], center[1])
-        for p in vecs:
-            print(p)
-
+        vecs = self.sortRing(direction,vecs)
+        print(vecs)
         while True:
             for new_position in vecs:
                 node_position = [center[0] + new_position[0], center[1] + new_position[1]]
@@ -484,6 +483,8 @@ class MyRob(CRobLinkAngs):
             self.ring = self.ring + 2 #next ring
             # adjacent_cells = self.getRing(direction)
             vecs = self.neighbors(self.ring, center[0], center[1])
+            vecs = self.sortRing(direction, vecs)
+            print(vecs)
             # centerCells = (round((len(cells)-1)/2),round((len(cells[0])-1)/2))
             if(self.ring > len(self.maze[0]) / 2):
                 print("RING:", self.ring)
@@ -503,6 +504,20 @@ class MyRob(CRobLinkAngs):
                 for c1 in range(len(cells[0])):
                     if (c1-center[1])%2 == 0:
                         vecs.append((c-center[0], c1-center[1]))
+        return vecs
+
+
+    def sortRing(self, direction, vecs):
+        print("DIR ", direction)
+        if direction == 0:
+            vecs.sort(key=lambda x: x[1], reverse=True)
+        elif direction == 180:
+            vecs.sort(key=lambda x: x[1])        
+        elif direction == 90:
+            vecs.sort(key=lambda x: x[0], reverse=True)
+            vecs.reverse()
+        elif direction == -90:
+            vecs.sort(key=lambda x: x[0])
         return vecs
 
     def getRing(self, direction):
