@@ -8,21 +8,21 @@
                                                         
                                                         
                                                         
-                           -----------------            
-                           |vvv|vvvvvvvvvvv|            
-                           ---v-v---------v-            
-                           |pvvvvvvvv|vvvvv|            
-                         ---p-------v-----v-            
-                         |vvpp     |vvv|vvv|            
-                     -----v---p-------v-v v---          
-                     |vvvvvvvvppppppppppppppE           
-                     -------------v-v---v-----          
-                       |v|vvvvvvvvv|vvv|vvv|            
-                     ---v---------v---v-v---            
-                     |vvvvvvvvvvv|vvvvvvv|              
+                                                        
+                                                        
+                           ---                          
+                           |S                           
+                         ---p                           
+                         |vvpp                          
+                     -----v---p-----      v---          
+                     |vvvvvvvvppppp    vppppE           
+                     -------------p-   -p-----          
+                       |v|vvvvvvvvp|   |pvv|            
+                     ---v---------p---v-p---            
+                     |vvvvvvvvvvv|ppppppp|              
                      ---v-------v-----v---              
                        |vvvvvvv|vvvvvvv|                
-                       -----------v-v-v-                
+                       -----------------                
                                                         
                                                         
                                                         

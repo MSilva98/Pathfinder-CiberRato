@@ -377,6 +377,10 @@ class MyRob(CRobLinkAngs):
             self.ring = 2
             unknownCell = self.getunknownCell(coord, direction)
 
+            if unknownCell == -1:
+                for p in self.maze:
+                    print(p)
+
             print("current cell: ", coord)
             print("unknown cell: ", unknownCell)
             
@@ -460,23 +464,46 @@ class MyRob(CRobLinkAngs):
 
     def getunknownCell(self, center, direction):
         adjacent_cells = self.getRing(direction)
+        # cells = self.neighbors(self.ring, center[0], center[1])
+        # centerCells = (round((len(cells)-1)/2),round((len(cells[0])-1)/2))
+        # print(centerCells, center)
+        vecs = self.neighbors(self.ring, center[0], center[1])
+        for p in vecs:
+            print(p)
 
         while True:
-            for new_position in adjacent_cells: # Adjacent cells
+            for new_position in vecs:
                 node_position = [center[0] + new_position[0], center[1] + new_position[1]]
-                print("node", node_position[0])
+                print("node", node_position)
                 #is in range
                 if (node_position[0] < (len(self.maze) - 1) and node_position[0] > 0 and node_position[1] < (len(self.maze[0]) -1) and node_position[1] > 0):
-                    print("HERE ", node_position, self.maze[node_position[0]][ node_position[1] ])
+                    # print("HERE ", node_position, self.maze[node_position[0]][ node_position[1] ])
                     #is unknown
-                    if self.maze[node_position[0]][ node_position[1] ] == 8 :
+                    if self.maze[node_position[0]][ node_position[1] ] == 8 and node_position[0]%2 == 0 and node_position[1]%2 == 0:
                         return (center[0] + new_position[0], center[1] + new_position[1])
             self.ring = self.ring + 2 #next ring
+            # adjacent_cells = self.getRing(direction)
+            vecs = self.neighbors(self.ring, center[0], center[1])
+            # centerCells = (round((len(cells)-1)/2),round((len(cells[0])-1)/2))
             if(self.ring > len(self.maze[0]) / 2):
                 print("RING:", self.ring)
-                print(self.maze)
+                # print(self.maze)
                 break
         return -1
+
+    def neighbors(self, radius, r, c):
+        cells = list()
+        for i in range(r-radius, r+radius+1):
+            cells.append(self.maze[i][c-radius:c+radius+1])
+
+        center = (round((len(cells)-1)/2),round((len(cells[0])-1)/2))
+        vecs = list()
+        for c in range(len(cells)): # Adjacent cells
+            if (c-center[0])%2 == 0:
+                for c1 in range(len(cells[0])):
+                    if (c1-center[1])%2 == 0:
+                        vecs.append((c-center[0], c1-center[1]))
+        return vecs
 
     def getRing(self, direction):
         if direction == 0:
@@ -617,7 +644,7 @@ class MyRob(CRobLinkAngs):
         self.readSensors()
         # Minimum distance at which we assume a wall exists
         minD = 0.7
-        minDSides = 0.65
+        minDSides = 0.62
         # Sensor value to detect wall
         threshold = 1/minD              # threshold front sensor
         thresholdSides = 1/minDSides    # threshold side sensors
