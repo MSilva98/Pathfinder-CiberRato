@@ -174,7 +174,7 @@ class MyRob(CRobLinkAngs):
     def yt (self, yt_prev, ang, lin):
         return yt_prev + lin*math.sin(math.radians(ang))
 
-    def moveHalfTimed(self, direction, pos):
+    def moveHalfTimed(self, direction, pos, distance = 0.99):
         if(direction == 0):
             posDest = [pos[0], pos[1]+2]
         elif(direction == 180):
@@ -190,7 +190,11 @@ class MyRob(CRobLinkAngs):
         prev_ang = 0
         prevTime = self.measures.time        
         #while self.measures.time - prevTime < 10:
-        while abs(translation) < 0.99:
+        while abs(translation) < distance:
+            # check for target
+            if self.measures.ground == 0:
+                return posDest
+            print(self.measures.irSensor)
             print("time:", self.measures.time - prevTime, " x: ", translation)
             # print(prevTime, self.measures.time)
 
@@ -306,11 +310,11 @@ class MyRob(CRobLinkAngs):
         if(self.measures.compass < 0 and direction == 180):
             errorDir =  - (direction - abs(self.measures.compass))  # directional error
         errorGeo = 0
-        if self.measures.irSensor[self.left_id] > 2.3:
-            errorGeo =  2.3 - self.measures.irSensor[self.left_id]
-        elif self.measures.irSensor[self.right_id] > 2.3:
-            errorGeo = self.measures.irSensor[self.right_id] - 2.3
-        return errorDir*0.01 + errorGeo*0.1
+        if self.measures.irSensor[self.left_id] > 2.1:
+            errorGeo =  2.1 - self.measures.irSensor[self.left_id]
+        elif self.measures.irSensor[self.right_id] > 2.1:
+            errorGeo = self.measures.irSensor[self.right_id] - 2.1
+        return errorDir*0.01 + errorGeo*0.15
 
     def rotate(self, ang):
         print("Rotating to ", ang)
@@ -414,11 +418,11 @@ class MyRob(CRobLinkAngs):
                 prevCoord = coord
                 if challenge == '3':    
                     print("START FIRST HALF")
-                    coord = self.moveHalfTimed(direction, coord)
+                    coord = self.moveHalfTimed(direction, coord, 1.1)
                     print("FINISH FIRST HALF")
                     self.checkWallsSide(direction, coord)
                     print("START SECOND HALF", prevCoord, coord)
-                    self.moveHalfTimed(direction, prevCoord)
+                    self.moveHalfTimed(direction, prevCoord, 0.7)
                     print("FINISH SECOND HALF")
                     self.checkWallsFront(direction, coord)
                 else:
@@ -434,7 +438,7 @@ class MyRob(CRobLinkAngs):
                     self.checkWallsFront(direction, coord)
 
                 #Assign 0 to all visited cells except target and start
-                if coord != self.startCELL:  
+                if tuple(coord) != self.startCELL:  
                     self.maze[coord[0]][coord[1]] = 0
                     
                     if direction == 0 and (coord[0],coord[1]-1) != self.startCELL:
@@ -456,18 +460,21 @@ class MyRob(CRobLinkAngs):
 
     def getunknownCell(self, center, direction):
         adjacent_cells = self.getRing(direction)
+
         while True:
             for new_position in adjacent_cells: # Adjacent cells
                 node_position = [center[0] + new_position[0], center[1] + new_position[1]]
                 print("node", node_position[0])
                 #is in range
-                if not (node_position[0] > (len(self.maze) - 1) or node_position[0] < 0 or node_position[1] > (len(self.maze[len(self.maze)-1]) -1) or node_position[1] < 0):
-                    # print("HERE")
+                if (node_position[0] < (len(self.maze) - 1) and node_position[0] > 0 and node_position[1] < (len(self.maze[0]) -1) and node_position[1] > 0):
+                    print("HERE ", node_position, self.maze[node_position[0]][ node_position[1] ])
                     #is unknown
                     if self.maze[node_position[0]][ node_position[1] ] == 8 :
                         return (center[0] + new_position[0], center[1] + new_position[1])
             self.ring = self.ring + 2 #next ring
-            if(self.ring > len(self.maze) / 2):
+            if(self.ring > len(self.maze[0]) / 2):
+                print("RING:", self.ring)
+                print(self.maze)
                 break
         return -1
 
