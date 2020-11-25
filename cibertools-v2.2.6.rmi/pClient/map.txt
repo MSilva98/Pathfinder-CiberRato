@@ -10,13 +10,13 @@
                                                         
                                             v---        
                                          vppppE         
-                           ---------v-   -p-----        
-                           |Spppppppp|   |pvv|          
-                          v---------p---v-p---          
-                         vvvvvvvvvv|ppppppp|            
-                         -v-------v-----v---            
+                         -----------v-   -p-----        
+                         |v|Spppppppp|   |pvv|          
+                       ---v---------p---v-p---          
+                       |vvvvvvvvvvv|ppppppp|            
+                       ---v-------v-----v---            
                          |vvvvvvv|vvvvvvv|              
-                         -----------------              
+                         -----------v-----              
                                                         
                                                         
                                                         
