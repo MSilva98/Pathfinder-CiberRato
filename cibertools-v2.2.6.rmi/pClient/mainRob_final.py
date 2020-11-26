@@ -437,9 +437,13 @@ class MyRob(CRobLinkAngs):
 
     def neighbors(self, radius, r, c):
         cells = list()
-        for i in range(r-radius, r+radius+1):
-            cells.append(self.maze[i][c-radius:c+radius+1])
-
+        #if (c-radius< (len(self.maze[0]) - 1) and c-radius > 0 and c+radius+1 < (len(self.maze[0]) -1) and c+radius+1 > 0):
+        if (r-radius > 0 and r+radius+1 < (len(self.maze[0]) -1)): 
+            if (c-radius > 0 and c+radius+1 < (len(self.maze[0]) -1)):    
+                for i in range(r-radius, r+radius+1):
+                    cells.append(self.maze[i][c-radius:c+radius+1])
+        else:
+            return
         center = (round((len(cells)-1)/2),round((len(cells[0])-1)/2))
         vecs = list()
         for c in range(len(cells)):
